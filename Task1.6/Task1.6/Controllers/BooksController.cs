@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Task1._6.Abstractions;
 using Task1._6.DTOs;
 using Task1._6.Services;
 
@@ -6,7 +7,7 @@ namespace Task1._6.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class BooksController(BookService bookService) : ControllerBase
+    public class BooksController(IBookService bookService) : ControllerBase
     {
         [HttpGet]
         public ActionResult<IEnumerable<BookDto>> GetAll()

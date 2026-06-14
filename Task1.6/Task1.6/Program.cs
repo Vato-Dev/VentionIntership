@@ -1,3 +1,4 @@
+using Task1._6.Abstractions;
 using Task1._6.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -6,7 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddSingleton<BookService>();
+builder.Services.AddSingleton<IBookService,BookService>();
 
 var app = builder.Build();
 

@@ -1,9 +1,10 @@
-﻿using Task1._6.DTOs;
+﻿using Task1._6.Abstractions;
+using Task1._6.DTOs;
 using Task1._6.Models;
 
 namespace Task1._6.Services
 {
-    public class BookService
+    public class BookService : IBookService
     {
         private readonly List<Book> _booksDb = new();
         private int _nextId = 1;
