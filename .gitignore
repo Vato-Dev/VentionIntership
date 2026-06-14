@@ -1,0 +1,82 @@
+﻿# OS / system files
+.DS_Store
+Thumbs.db
+
+# Environment files
+.env
+.env.*
+# Editor Config 
+.editorconfig
+# Node / npm
+node_modules/
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.package-lock.json
+.yarn/
+.pnpm-store/
+
+
+
+# .NET build outputs
+**/bin/
+**/obj/
+**/*.user
+**/*.rsuser
+**/*.suo
+**/*.cache
+**/*.pdb
+**/*.mdb
+**/*.log
+
+# NuGet
+*.nupkg
+# NuGet packages folder (if used)
+packages/
+# NuGet v3 package cache
+~/.nuget/packages/
+
+# Rider / JetBrains
+.idea/
+*.iml
+# Rider caches
+/.idea/
+/.idea/**/workspace.xml
+/.idea/**/tasks.xml
+/.idea/**/dictionaries
+/.idea/**/shelf/
+/.idea/**/contentModel.xml
+/.idea/**/dataSources/
+/.idea/**/dataSources.local.xml
+/.idea/**/sqlDataSources.xml
+/.idea/**/dynamic.xml
+/.idea/**/uiDesigner.xml
+/.idea/**/gradle.xml
+/.idea/**/libraries/
+
+# Visual Studio
+.vs/
+# Visual Studio Code
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# Coverage / test
+coverage/
+*.coverage*
+TestResult*/
+
+# Logs / diagnostics
+logs/
+*.log
+
+# Docker
+**/.dockerignore
+
+# Publish output (optional)
+**/publish/
+
+# Temporary files
+*.tmp
+*.temp
+~$*
