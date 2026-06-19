@@ -6,6 +6,7 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+Console.WriteLine(builder.Configuration["Test:InnerObject"]);
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
