@@ -17,7 +17,6 @@ pnpm-debug.log*
 .pnpm-store/
 
 
-
 # .NET build outputs
 **/bin/
 **/obj/
@@ -80,3 +79,4 @@ logs/
 *.tmp
 *.temp
 ~$*
+
