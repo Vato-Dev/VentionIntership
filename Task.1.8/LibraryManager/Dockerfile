@@ -2,6 +2,11 @@
 WORKDIR /app
 EXPOSE 8080
 
+
+RUN apk add --no-cache icu-data icu-libs 
+ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
+
+
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
