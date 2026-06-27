@@ -1,0 +1,23 @@
+﻿services:
+  library-db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: library-sql-db
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=LibraryPass123!
+    ports:
+      - "1433:1433"
+
+  library-api:
+    image: library-manager-api
+    container_name: library-api-app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "7527:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnectionString=Server=library-db;Database=LibraryManagerDb;User Id=sa;Password=LibraryPass123!;TrustServerCertificate=True;
+    depends_on:
+      - library-db
