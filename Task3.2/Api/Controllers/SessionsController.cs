@@ -1,0 +1,113 @@
+﻿using Application.Abstractions;
+using Application.DTOs;
+using Domain.Models;
+using Microsoft.AspNetCore.Mvc;
+
+namespace Api.Controllers
+{
+ [ApiController]
+    [Route("api/[controller]")]
+    public sealed class SessionsController(ISessionService sessionService) : ControllerBase
+    {
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
+        {
+            var sessions = await sessionService.GetAllSessionsAsync();
+            var response = sessions.Select(s => new SessionResponseDto
+            {
+                Id = s.Id,
+                UserId = s.UserId,
+                IsActive = s.IsActive,
+                CreatedAt = s.CreatedAt,
+                ExpiresAt = s.ExpiresAt
+            });
+            return Ok(response);
+        }
+
+        [HttpGet("{id:int}")]
+        public async Task<IActionResult> GetById(int id)
+        {
+            var session = await sessionService.GetSessionByIdAsync(id);
+            if (session == null) return NotFound($"Session with ID {id} not found.");
+
+            var response = new SessionResponseDto
+            {
+                Id = session.Id,
+                UserId = session.UserId,
+                IsActive = session.IsActive,
+                CreatedAt = session.CreatedAt,
+                ExpiresAt = session.ExpiresAt
+            };
+            return Ok(response);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Create([FromBody] SessionCreateDto dto)
+        {
+            var session = new Session
+            {
+                UserId = dto.UserId,
+                ExpiresAt = dto.ExpiresAt
+            };
+
+            try
+            {
+                await sessionService.CreateSessionAsync(session);
+
+                var response = new SessionResponseDto
+                {
+                    Id = session.Id,
+                    UserId = session.UserId,
+                    IsActive = session.IsActive,
+                    CreatedAt = session.CreatedAt,
+                    ExpiresAt = session.ExpiresAt
+                };
+
+                return CreatedAtAction(nameof(GetById), new { id = response.Id }, response);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        [HttpPut("{id:int}")]
+        public async Task<IActionResult> Update(int id, [FromBody] SessionUpdateDto dto)
+        {
+            if (id != dto.Id) return BadRequest("Mismatched Session ID.");
+
+            var existingSession = await sessionService.GetSessionByIdAsync(id);
+            if (existingSession == null) return NotFound($"Session with ID {id} not found.");
+
+            existingSession.IsActive = dto.IsActive;
+            existingSession.ExpiresAt = dto.ExpiresAt;
+
+            try
+            {
+                await sessionService.UpdateSessionAsync(existingSession);
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        [HttpDelete("{id:int}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            try
+            {
+                var session = await sessionService.GetSessionByIdAsync(id);
+                if (session == null) return NotFound($"Session with ID {id} not found.");
+
+                await sessionService.DeleteSessionAsync(id);
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+    }
+}
