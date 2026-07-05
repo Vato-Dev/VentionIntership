@@ -14,17 +14,31 @@ namespace Api.Controllers
         public PositionsController(IPositionService positionService) => _positionService = positionService;
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll(
+            [FromQuery] int? keySetId = null, 
+            [FromQuery] int? page = 1, 
+            [FromQuery] int? pageSize = 10)
         {
-            var positions = await _positionService.GetAllPositionsAsync();
-            var response = positions.Select(p => new PositionResponseDto
+            var pagedPositions = await _positionService.GetAllPositionsAsync(keySetId, page, pageSize);
+            
+            var response = new PagedResponse<PositionResponseDto>
             {
-                Id = p.Id,
-                Title = p.Title,
-                Description = p.Description
-            });
+                Data = pagedPositions.Data.Select(p => new PositionResponseDto
+                {
+                    Id = p.Id,
+                    Title = p.Title,
+                    Description = p.Description
+                }).ToList(),
+                PageNumber = pagedPositions.PageNumber,
+                PageSize = pagedPositions.PageSize,
+                TotalItems = pagedPositions.TotalItems,
+                TotalPages = pagedPositions.TotalPages,
+                LastSeenId = pagedPositions.LastSeenId
+            };
+
             return Ok(response);
         }
+
 
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetById(int id)

@@ -12,18 +12,31 @@ namespace Api.Controllers
         public sealed class UsersController(IUserService userService) : ControllerBase
         {
             [HttpGet]
-            public async Task<IActionResult> GetAll()
+            public async Task<IActionResult> GetAll(
+                [FromQuery] int? keySetId = null, 
+                [FromQuery] int? page = 1, 
+                [FromQuery] int? pageSize = 10)
             {
-                var users = await userService.GetAllUsersAsync();
-                var response = users.Select(u => new UserResponseDto
+                var pagedUsers = await userService.GetAllUsersAsync(keySetId, page, pageSize);
+            
+                var response = new PagedResponse<UserResponseDto>
                 {
-                    Id = u.Id,
-                    Username = u.Username,
-                    Email = u.Email,
-                    PositionId = u.PositionId,
-                    OrganizationId = u.OrganizationId,
-                    CreatedAt = u.CreatedAt
-                });
+                    Data = pagedUsers.Data.Select(u => new UserResponseDto
+                    {
+                        Id = u.Id,
+                        Username = u.Username,
+                        Email = u.Email,
+                        PositionId = u.PositionId,
+                        OrganizationId = u.OrganizationId,
+                        CreatedAt = u.CreatedAt
+                    }).ToList(),
+                    PageNumber = pagedUsers.PageNumber,
+                    PageSize = pagedUsers.PageSize,
+                    TotalItems = pagedUsers.TotalItems,
+                    TotalPages = pagedUsers.TotalPages,
+                    LastSeenId = pagedUsers.LastSeenId
+                };
+
                 return Ok(response);
             }
 

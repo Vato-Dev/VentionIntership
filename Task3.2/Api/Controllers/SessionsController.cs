@@ -10,17 +10,30 @@ namespace Api.Controllers
     public sealed class SessionsController(ISessionService sessionService) : ControllerBase
     {
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll(
+            [FromQuery] int? keySetId = null, 
+            [FromQuery] int? page = 1, 
+            [FromQuery] int? pageSize = 10)
         {
-            var sessions = await sessionService.GetAllSessionsAsync();
-            var response = sessions.Select(s => new SessionResponseDto
+            var pagedSessions = await sessionService.GetAllSessionsAsync(keySetId, page, pageSize);
+            
+            var response = new PagedResponse<SessionResponseDto>
             {
-                Id = s.Id,
-                UserId = s.UserId,
-                IsActive = s.IsActive,
-                CreatedAt = s.CreatedAt,
-                ExpiresAt = s.ExpiresAt
-            });
+                Data = pagedSessions.Data.Select(s => new SessionResponseDto
+                {
+                    Id = s.Id,
+                    UserId = s.UserId,
+                    IsActive = s.IsActive,
+                    CreatedAt = s.CreatedAt,
+                    ExpiresAt = s.ExpiresAt
+                }).ToList(),
+                PageNumber = pagedSessions.PageNumber,
+                PageSize = pagedSessions.PageSize,
+                TotalItems = pagedSessions.TotalItems,
+                TotalPages = pagedSessions.TotalPages,
+                LastSeenId = pagedSessions.LastSeenId
+            };
+
             return Ok(response);
         }
 

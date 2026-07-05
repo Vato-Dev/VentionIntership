@@ -1,4 +1,5 @@
 ﻿using Application.Abstractions;
+using Application.DTOs;
 using Microsoft.EntityFrameworkCore;
 
 namespace Persistence
@@ -12,9 +13,47 @@ namespace Persistence
             return await context.Set<T>().FindAsync(id);
         }
 
-        public async Task<IEnumerable<T>> GetAllAsync()
+        public async Task<PagedResponse<T>> GetAllAsync(int? keySetId = null, int? page = 1, int? pageSize = 10)
         {
-            return await context.Set<T>().ToListAsync();
+            var baseQuery = context.Set<T>().AsNoTracking();
+            int size = pageSize ?? 10;
+            int p = page ?? 1;
+
+            var query = baseQuery.OrderBy(x => EF.Property<int>(x, "Id"));
+
+            if (keySetId.HasValue && keySetId.Value > 0)
+            {
+                query = (IOrderedQueryable<T>)query.Where(x => EF.Property<int>(x, "Id") > keySetId.Value);
+                var data = await query.Take(size).ToListAsync();
+
+                var lastItem = data.LastOrDefault();
+                int? lastId = lastItem != null ? ((dynamic)lastItem).Id : null;
+                return new PagedResponse<T>
+                {
+                    Data = data,
+                    PageSize = size,
+                    LastSeenId = lastId
+                };
+            }
+            else
+            {
+       //otherwise default offset 
+                int totalItems = await baseQuery.CountAsync(); 
+        
+                int skipCount = (p - 1) * size;
+                var data = await query.Skip(skipCount).Take(size).ToListAsync();
+        
+                int totalPages = (int)Math.Ceiling((double)totalItems / size);
+
+                return new PagedResponse<T>
+                {
+                    Data = data,
+                    PageNumber = p,
+                    PageSize = size,
+                    TotalItems = totalItems,
+                    TotalPages = totalPages
+                };
+            }
         }
 
         public async Task AddAsync(T entity)

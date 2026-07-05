@@ -10,15 +10,28 @@ namespace Api.Controllers
     public sealed class OrganizationsController(IOrganizationService organizationService) : ControllerBase
     {
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll(
+            [FromQuery] int? keySetId = null, 
+            [FromQuery] int? page = 1, 
+            [FromQuery] int? pageSize = 10)
         {
-            var organizations = await organizationService.GetAllOrganizationsAsync();
-            var response = organizations.Select(o => new OrganizationResponseDto
+            var pagedOrganizations = await organizationService.GetAllOrganizationsAsync(keySetId, page, pageSize);
+            
+            var response = new PagedResponse<OrganizationResponseDto>
             {
-                Id = o.Id,
-                Name = o.Name,
-                StreetAddress = o.StreetAddress
-            });
+                Data = pagedOrganizations.Data.Select(o => new OrganizationResponseDto
+                {
+                    Id = o.Id,
+                    Name = o.Name,
+                    StreetAddress = o.StreetAddress
+                }).ToList(),
+                PageNumber = pagedOrganizations.PageNumber,
+                PageSize = pagedOrganizations.PageSize,
+                TotalItems = pagedOrganizations.TotalItems,
+                TotalPages = pagedOrganizations.TotalPages,
+                LastSeenId = pagedOrganizations.LastSeenId
+            };
+
             return Ok(response);
         }
 

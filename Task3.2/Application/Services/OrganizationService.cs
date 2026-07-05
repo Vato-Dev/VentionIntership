@@ -1,5 +1,6 @@
 ﻿using System.Data;
 using Application.Abstractions;
+using Application.DTOs;
 using Domain.Models;
 
 namespace Application.Services
@@ -8,8 +9,8 @@ namespace Application.Services
     {
         public Task<Organization?> GetOrganizationByIdAsync(int id) => organizationRepository.GetByIdAsync(id);
 
-        public Task<IEnumerable<Organization>> GetAllOrganizationsAsync() => organizationRepository.GetAllAsync();
-
+        public Task<PagedResponse<Organization>> GetAllOrganizationsAsync(int? keySetId = null, int? page = 1, int? pageSize = 10) 
+            => organizationRepository.GetAllAsync( keySetId, page, pageSize);
         public async Task CreateOrganizationAsync(Organization organization)
         {
             await unitOfWork.BeginTransactionAsync();

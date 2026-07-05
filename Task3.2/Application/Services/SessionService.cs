@@ -1,6 +1,7 @@
 ﻿
 using System.Data; 
 using Application.Abstractions;
+using Application.DTOs;
 using Domain.Models;
 
 namespace Application.Services
@@ -9,8 +10,8 @@ namespace Application.Services
     {
         public Task<Session?> GetSessionByIdAsync(int id) => sessionRepository.GetByIdAsync(id);
 
-        public Task<IEnumerable<Session>> GetAllSessionsAsync() => sessionRepository.GetAllAsync();
-
+        public Task<PagedResponse<Session>> GetAllSessionsAsync(int? keySetId = null, int? page = 1, int? pageSize = 10) 
+            => sessionRepository.GetAllAsync(keySetId, page, pageSize);
         public async Task CreateSessionAsync(Session session)
         {
             await unitOfWork.BeginTransactionAsync();
