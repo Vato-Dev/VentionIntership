@@ -1,42 +1,68 @@
-﻿using Application.Abstractions;
+﻿
+using System.Data; 
+using Application.Abstractions;
 using Domain.Models;
 
 namespace Application.Services
 {
-    public sealed class SessionService : ISessionService
+    public sealed class SessionService(IBaseRepository<Session> sessionRepository, IUnitOfWork unitOfWork) : ISessionService
     {
-        private readonly IBaseRepository<Session> _sessionRepository;
-        private readonly IUnitOfWork _unitOfWork;
+        public Task<Session?> GetSessionByIdAsync(int id) => sessionRepository.GetByIdAsync(id);
 
-        public SessionService(IBaseRepository<Session> sessionRepository, IUnitOfWork unitOfWork)
-        {
-            _sessionRepository = sessionRepository;
-            _unitOfWork = unitOfWork;
-        }
-
-        public Task<Session?> GetSessionByIdAsync(int id) => _sessionRepository.GetByIdAsync(id);
-
-        public Task<IEnumerable<Session>> GetAllSessionsAsync() => _sessionRepository.GetAllAsync();
+        public Task<IEnumerable<Session>> GetAllSessionsAsync() => sessionRepository.GetAllAsync();
 
         public async Task CreateSessionAsync(Session session)
         {
-            await _sessionRepository.AddAsync(session);
-            await _unitOfWork.SaveChangesAsync();
+            await unitOfWork.BeginTransactionAsync();
+            try
+            {
+                await sessionRepository.AddAsync(session);
+                await unitOfWork.SaveChangesAsync();
+                
+                await unitOfWork.CommitTransactionAsync();
+            }
+            catch
+            {
+                await unitOfWork.RollbackTransactionAsync();
+                throw;
+            }
         }
 
         public async Task UpdateSessionAsync(Session session)
         {
-            _sessionRepository.Update(session);
-            await _unitOfWork.SaveChangesAsync();
+            await unitOfWork.BeginTransactionAsync();
+            try
+            {
+                sessionRepository.Update(session);
+                await unitOfWork.SaveChangesAsync();
+                
+                await unitOfWork.CommitTransactionAsync();
+            }
+            catch
+            {
+                await unitOfWork.RollbackTransactionAsync();
+                throw;
+            }
         }
 
         public async Task DeleteSessionAsync(int id)
         {
-            var session = await _sessionRepository.GetByIdAsync(id);
-            if (session != null)
+            await unitOfWork.BeginTransactionAsync();
+            try
             {
-                _sessionRepository.Delete(session);
-                await _unitOfWork.SaveChangesAsync();
+                var session = await sessionRepository.GetByIdAsync(id);
+                if (session != null)
+                {
+                    sessionRepository.Delete(session);
+                    await unitOfWork.SaveChangesAsync();
+                }
+                
+                await unitOfWork.CommitTransactionAsync();
+            }
+            catch
+            {
+                await unitOfWork.RollbackTransactionAsync();
+                throw;
             }
         }
     }

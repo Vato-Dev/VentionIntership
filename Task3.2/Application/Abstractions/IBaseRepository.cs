@@ -1,4 +1,7 @@
-﻿namespace Application.Abstractions
+﻿
+using System.Data;
+
+namespace Application.Abstractions
 {
     public interface IBaseRepository<TModel> where TModel : class
     {
@@ -11,6 +14,9 @@
     public interface IUnitOfWork 
     {
         Task<int> SaveChangesAsync();
+        Task BeginTransactionAsync(IsolationLevel isolationLevel = IsolationLevel.ReadCommitted);
+        Task CommitTransactionAsync();
+        Task RollbackTransactionAsync();
     }
     //todo: refactor later
 }

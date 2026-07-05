@@ -1,5 +1,6 @@
-﻿
+﻿using System.Data;
 using Application.Abstractions;
+
 using Domain.Models;
 
 namespace Application.Services
@@ -12,23 +13,56 @@ namespace Application.Services
 
         public async Task CreateUserAsync(User user)
         {
-            await userRepository.AddAsync(user);
-            await unitOfWork.SaveChangesAsync();
+            await unitOfWork.BeginTransactionAsync();
+            try
+            {
+                await userRepository.AddAsync(user);
+                await unitOfWork.SaveChangesAsync();
+                
+                await unitOfWork.CommitTransactionAsync();
+            }
+            catch
+            {
+                await unitOfWork.RollbackTransactionAsync();
+                throw;
+            }
         }
 
         public async Task UpdateUserAsync(User user)
         {
-            userRepository.Update(user);
-            await unitOfWork.SaveChangesAsync();
+            await unitOfWork.BeginTransactionAsync();
+            try
+            {
+                userRepository.Update(user);
+                await unitOfWork.SaveChangesAsync();
+                
+                await unitOfWork.CommitTransactionAsync();
+            }
+            catch
+            {
+                await unitOfWork.RollbackTransactionAsync();
+                throw;
+            }
         }
 
         public async Task DeleteUserAsync(int id)
         {
-            var user = await userRepository.GetByIdAsync(id);
-            if (user != null)
+            await unitOfWork.BeginTransactionAsync();
+            try
             {
-                userRepository.Delete(user);
-                await unitOfWork.SaveChangesAsync();
+                var user = await userRepository.GetByIdAsync(id);
+                if (user != null)
+                {
+                    userRepository.Delete(user);
+                    await unitOfWork.SaveChangesAsync();
+                }
+                
+                await unitOfWork.CommitTransactionAsync();
+            }
+            catch
+            {
+                await unitOfWork.RollbackTransactionAsync();
+                throw;
             }
         }
     }
