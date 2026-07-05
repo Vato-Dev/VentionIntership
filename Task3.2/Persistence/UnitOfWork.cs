@@ -5,73 +5,64 @@ using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Persistence
 {
-        public sealed class UnitOfWork(AppDbContext context) : IUnitOfWork
+    public sealed class UnitOfWork(AppDbContext context) : IUnitOfWork
+    {
+        private IDbContextTransaction? _currentTransaction;
+
+        public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
-            private IDbContextTransaction? _currentTransaction;
+            return context.SaveChangesAsync(cancellationToken);
+        }
 
-            public Task<int> SaveChangesAsync()
-            {
-                return context.SaveChangesAsync();
-            }
+        public async Task BeginTransactionAsync(IsolationLevel isolationLevel = IsolationLevel.ReadCommitted, CancellationToken cancellationToken = default)
+        {
+            if (_currentTransaction != null) return;
 
-            public async Task BeginTransactionAsync(IsolationLevel isolationLevel = IsolationLevel.ReadCommitted)
+            _currentTransaction = await context.Database.BeginTransactionAsync(isolationLevel, cancellationToken);
+        }
+
+        public async Task CommitTransactionAsync(CancellationToken cancellationToken = default)
+        {
+            try
             {
                 if (_currentTransaction != null)
                 {
-                    return;
+                    await _currentTransaction.CommitAsync(cancellationToken);
                 }
-
-                _currentTransaction = await context.Database.BeginTransactionAsync(isolationLevel);
             }
-
-            public async Task CommitTransactionAsync()
+            catch
             {
-                try
-                {
-                    if (_currentTransaction != null)
-                    {
-                        await _currentTransaction.CommitAsync();
-                    }
-                }
-                catch
-                {
-                    await RollbackTransactionAsync();
-                    throw;
-                }
-                finally
-                {
-                    DisposeTransaction();
-                }
+                await RollbackTransactionAsync(CancellationToken.None);
+                throw;
             }
-
-            public async Task RollbackTransactionAsync()
-            {
-                try
-                {
-                    if (_currentTransaction != null)
-                    {
-                        await _currentTransaction.RollbackAsync();
-                    }
-                }
-                finally
-                {
-                    DisposeTransaction();
-                }
-            }
-
-            public void Dispose()
+            finally
             {
                 DisposeTransaction();
-                context.Dispose();
             }
+        }
 
-            private void DisposeTransaction()
+        public async Task RollbackTransactionAsync(CancellationToken cancellationToken = default)
+        {
+            try
             {
                 if (_currentTransaction != null)
                 {
-                    _currentTransaction.Dispose();
-                    _currentTransaction = null;
+                    await _currentTransaction.RollbackAsync(cancellationToken);
                 }
+            }
+            finally
+            {
+                DisposeTransaction();
+            }
+        }
+
+        private void DisposeTransaction()
+        {
+            if (_currentTransaction != null)
+            {
+                _currentTransaction.Dispose();
+                _currentTransaction = null;
             }
         }
     }
+}

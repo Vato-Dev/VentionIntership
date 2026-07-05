@@ -8,12 +8,12 @@ namespace Persistence
         where T : class
     {
 
-        public async Task<T?> GetByIdAsync(int id)
+        public async Task<T?> GetByIdAsync(int id, CancellationToken cancellationToken)
         {
-            return await context.Set<T>().FindAsync(id);
+            return await context.Set<T>().FindAsync(id, cancellationToken);
         }
 
-        public async Task<PagedResponse<T>> GetAllAsync(int? keySetId = null, int? page = 1, int? pageSize = 10)
+        public async Task<PagedResponse<T>> GetAllAsync( CancellationToken cancellationToken,int? keySetId = null, int? page = 1, int? pageSize = 10)
         {
             var baseQuery = context.Set<T>().AsNoTracking();
             int size = pageSize ?? 10;
@@ -24,7 +24,7 @@ namespace Persistence
             if (keySetId.HasValue && keySetId.Value > 0)
             {
                 query = (IOrderedQueryable<T>)query.Where(x => EF.Property<int>(x, "Id") > keySetId.Value);
-                var data = await query.Take(size).ToListAsync();
+                var data = await query.Take(size).ToListAsync(cancellationToken);
 
                 var lastItem = data.LastOrDefault();
                 int? lastId = lastItem != null ? ((dynamic)lastItem).Id : null;
@@ -38,10 +38,10 @@ namespace Persistence
             else
             {
        //otherwise default offset 
-                int totalItems = await baseQuery.CountAsync(); 
+                int totalItems = await baseQuery.CountAsync(cancellationToken); 
         
                 int skipCount = (p - 1) * size;
-                var data = await query.Skip(skipCount).Take(size).ToListAsync();
+                var data = await query.Skip(skipCount).Take(size).ToListAsync(cancellationToken);
         
                 int totalPages = (int)Math.Ceiling((double)totalItems / size);
 
@@ -56,9 +56,9 @@ namespace Persistence
             }
         }
 
-        public async Task AddAsync(T entity)
+        public async Task AddAsync(T entity, CancellationToken cancellationToken)
         {
-            await context.Set<T>().AddAsync(entity);
+            await context.Set<T>().AddAsync(entity, cancellationToken); 
         }
 
         public void Update(T entity)

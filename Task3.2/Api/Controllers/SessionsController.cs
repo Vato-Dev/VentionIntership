@@ -5,17 +5,18 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers
 {
- [ApiController]
+    [ApiController]
     [Route("api/[controller]")]
     public sealed class SessionsController(ISessionService sessionService) : ControllerBase
     {
         [HttpGet]
         public async Task<IActionResult> GetAll(
+            CancellationToken cancellationToken,
             [FromQuery] int? keySetId = null, 
             [FromQuery] int? page = 1, 
             [FromQuery] int? pageSize = 10)
         {
-            var pagedSessions = await sessionService.GetAllSessionsAsync(keySetId, page, pageSize);
+            var pagedSessions = await sessionService.GetAllSessionsAsync(keySetId, page, pageSize, cancellationToken);
             
             var response = new PagedResponse<SessionResponseDto>
             {
@@ -38,9 +39,9 @@ namespace Api.Controllers
         }
 
         [HttpGet("{id:int}")]
-        public async Task<IActionResult> GetById(int id)
+        public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken)
         {
-            var session = await sessionService.GetSessionByIdAsync(id);
+            var session = await sessionService.GetSessionByIdAsync(id, cancellationToken);
             if (session == null) return NotFound($"Session with ID {id} not found.");
 
             var response = new SessionResponseDto
@@ -55,7 +56,7 @@ namespace Api.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] SessionCreateDto dto)
+        public async Task<IActionResult> Create([FromBody] SessionCreateDto dto, CancellationToken cancellationToken)
         {
             var session = new Session
             {
@@ -65,7 +66,7 @@ namespace Api.Controllers
 
             try
             {
-                await sessionService.CreateSessionAsync(session);
+                await sessionService.CreateSessionAsync(session, cancellationToken);
 
                 var response = new SessionResponseDto
                 {
@@ -85,11 +86,11 @@ namespace Api.Controllers
         }
 
         [HttpPut("{id:int}")]
-        public async Task<IActionResult> Update(int id, [FromBody] SessionUpdateDto dto)
+        public async Task<IActionResult> Update(int id, [FromBody] SessionUpdateDto dto, CancellationToken cancellationToken)
         {
             if (id != dto.Id) return BadRequest("Mismatched Session ID.");
 
-            var existingSession = await sessionService.GetSessionByIdAsync(id);
+            var existingSession = await sessionService.GetSessionByIdAsync(id, cancellationToken);
             if (existingSession == null) return NotFound($"Session with ID {id} not found.");
 
             existingSession.IsActive = dto.IsActive;
@@ -97,7 +98,7 @@ namespace Api.Controllers
 
             try
             {
-                await sessionService.UpdateSessionAsync(existingSession);
+                await sessionService.UpdateSessionAsync(existingSession, cancellationToken);
                 return NoContent();
             }
             catch (Exception ex)
@@ -107,14 +108,14 @@ namespace Api.Controllers
         }
 
         [HttpDelete("{id:int}")]
-        public async Task<IActionResult> Delete(int id)
+        public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
         {
             try
             {
-                var session = await sessionService.GetSessionByIdAsync(id);
+                var session = await sessionService.GetSessionByIdAsync(id, cancellationToken);
                 if (session == null) return NotFound($"Session with ID {id} not found.");
 
-                await sessionService.DeleteSessionAsync(id);
+                await sessionService.DeleteSessionAsync(id, cancellationToken);
                 return NoContent();
             }
             catch (Exception ex)

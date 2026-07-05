@@ -5,17 +5,18 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers
 {
-  [ApiController]
+    [ApiController]
     [Route("api/[controller]")]
     public sealed class OrganizationsController(IOrganizationService organizationService) : ControllerBase
     {
         [HttpGet]
         public async Task<IActionResult> GetAll(
+            CancellationToken cancellationToken,
             [FromQuery] int? keySetId = null, 
             [FromQuery] int? page = 1, 
             [FromQuery] int? pageSize = 10)
         {
-            var pagedOrganizations = await organizationService.GetAllOrganizationsAsync(keySetId, page, pageSize);
+            var pagedOrganizations = await organizationService.GetAllOrganizationsAsync(cancellationToken,keySetId, page, pageSize);
             
             var response = new PagedResponse<OrganizationResponseDto>
             {
@@ -36,9 +37,9 @@ namespace Api.Controllers
         }
 
         [HttpGet("{id:int}")]
-        public async Task<IActionResult> GetById(int id)
+        public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken)
         {
-            var org = await organizationService.GetOrganizationByIdAsync(id);
+            var org = await organizationService.GetOrganizationByIdAsync(cancellationToken,id);
             if (org == null) return NotFound($"Organization with ID {id} not found.");
 
             var response = new OrganizationResponseDto
@@ -51,7 +52,7 @@ namespace Api.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] OrganizationCreateDto dto)
+        public async Task<IActionResult> Create([FromBody] OrganizationCreateDto dto, CancellationToken cancellationToken)
         {
             var org = new Organization
             {
@@ -61,7 +62,7 @@ namespace Api.Controllers
 
             try
             {
-                await organizationService.CreateOrganizationAsync(org);
+                await organizationService.CreateOrganizationAsync(org, cancellationToken);
                 
                 var response = new OrganizationResponseDto
                 {
@@ -79,11 +80,11 @@ namespace Api.Controllers
         }
 
         [HttpPut("{id:int}")]
-        public async Task<IActionResult> Update(int id, [FromBody] OrganizationUpdateDto dto)
+        public async Task<IActionResult> Update(int id, [FromBody] OrganizationUpdateDto dto, CancellationToken cancellationToken)
         {
             if (id != dto.Id) return BadRequest("Mismatched Organization ID.");
 
-            var existingOrg = await organizationService.GetOrganizationByIdAsync(id);
+            var existingOrg = await organizationService.GetOrganizationByIdAsync(cancellationToken,id);
             if (existingOrg == null) return NotFound($"Organization with ID {id} not found.");
 
             existingOrg.Name = dto.Name;
@@ -91,7 +92,7 @@ namespace Api.Controllers
 
             try
             {
-                await organizationService.UpdateOrganizationAsync(existingOrg);
+                await organizationService.UpdateOrganizationAsync(existingOrg, cancellationToken);
                 return NoContent();
             }
             catch (Exception ex)
@@ -101,14 +102,14 @@ namespace Api.Controllers
         }
 
         [HttpDelete("{id:int}")]
-        public async Task<IActionResult> Delete(int id)
+        public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
         {
             try
             {
-                var org = await organizationService.GetOrganizationByIdAsync(id);
+                var org = await organizationService.GetOrganizationByIdAsync(cancellationToken,id);
                 if (org == null) return NotFound($"Organization with ID {id} not found.");
 
-                await organizationService.DeleteOrganizationAsync(id);
+                await organizationService.DeleteOrganizationAsync(id, cancellationToken);
                 return NoContent();
             }
             catch (Exception ex)
