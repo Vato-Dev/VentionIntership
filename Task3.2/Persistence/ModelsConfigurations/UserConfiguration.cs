@@ -27,6 +27,9 @@ namespace Persistence.ModelsConfigurations
                 .WithMany(p => p.Users)
                 .HasForeignKey(u => u.PositionId)
                 .OnDelete(DeleteBehavior.Restrict);
+            
+            builder.HasIndex(u => new { u.OrganizationId, u.Email })
+                .HasDatabaseName("IX_Users_OrganizationId_Email");
         }
     }
 }
