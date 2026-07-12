@@ -1,42 +1,98 @@
-﻿using Application.Abstractions;
+﻿
+using System.Data;
+using Application.Abstractions;
+using Application.DTOs;
 using Domain.Models;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Application.Services
 {
-    public sealed class PositionService : IPositionService
+    public sealed class PositionService(
+        IBaseRepository<Position> positionRepository, 
+        IUnitOfWork unitOfWork,
+        IMemoryCache cache) : IPositionService
     {
-        private readonly IBaseRepository<Position> _positionRepository;
-        private readonly IUnitOfWork _unitOfWork;
+        private const string CacheKeyPrefix = "pos_";
+        private const string AllPositionsCacheKey = "all_positions_paged_";
 
-        public PositionService(IBaseRepository<Position> positionRepository, IUnitOfWork unitOfWork)
+        public async Task<Position?> GetPositionByIdAsync(int id, CancellationToken cancellationToken = default)
         {
-            _positionRepository = positionRepository;
-            _unitOfWork = unitOfWork;
-        }
-
-        public Task<Position?> GetPositionByIdAsync(int id) => _positionRepository.GetByIdAsync(id);
-
-        public Task<IEnumerable<Position>> GetAllPositionsAsync() => _positionRepository.GetAllAsync();
-
-        public async Task CreatePositionAsync(Position position)
-        {
-            await _positionRepository.AddAsync(position);
-            await _unitOfWork.SaveChangesAsync();
-        }
-
-        public async Task UpdatePositionAsync(Position position)
-        {
-            _positionRepository.Update(position);
-            await _unitOfWork.SaveChangesAsync();
-        }
-
-        public async Task DeletePositionAsync(int id)
-        {
-            var position = await _positionRepository.GetByIdAsync(id);
-            if (position != null)
+            string cacheKey = $"{CacheKeyPrefix}{id}";
+            return await cache.GetOrCreateAsync(cacheKey, async entry =>
             {
-                _positionRepository.Delete(position);
-                await _unitOfWork.SaveChangesAsync();
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(15);
+                return await positionRepository.GetByIdAsync(id, cancellationToken);
+            });
+        }
+
+        public async Task<PagedResponse<Position>> GetAllPositionsAsync(
+            int? keySetId = null, int? page = 1, int? pageSize = 10, CancellationToken cancellationToken = default)
+        {
+            string cacheKey = $"{AllPositionsCacheKey}{keySetId}_{page}_{pageSize}";
+            return await cache.GetOrCreateAsync(cacheKey, async entry =>
+            {
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5);
+                return await positionRepository.GetAllAsync(cancellationToken, keySetId, page, pageSize);
+            }) ?? new PagedResponse<Position>();
+        }
+
+        public async Task CreatePositionAsync(Position position, CancellationToken cancellationToken = default)
+        {
+            await unitOfWork.BeginTransactionAsync(IsolationLevel.ReadCommitted, cancellationToken);
+            try
+            {
+                await positionRepository.AddAsync(position, cancellationToken);
+                await unitOfWork.SaveChangesAsync(cancellationToken);
+                await unitOfWork.CommitTransactionAsync(cancellationToken);
+                
+                cache.Remove(AllPositionsCacheKey);
+            }
+            catch
+            {
+                await unitOfWork.RollbackTransactionAsync(CancellationToken.None);
+                throw;
+            }
+        }
+
+        public async Task UpdatePositionAsync(Position position, CancellationToken cancellationToken = default)
+        {
+            await unitOfWork.BeginTransactionAsync(IsolationLevel.ReadCommitted, cancellationToken);
+            try
+            {
+                positionRepository.Update(position);
+                await unitOfWork.SaveChangesAsync(cancellationToken);
+                await unitOfWork.CommitTransactionAsync(cancellationToken);
+                
+                cache.Remove($"{CacheKeyPrefix}{position.Id}");
+                cache.Remove(AllPositionsCacheKey);
+            }
+            catch
+            {
+                await unitOfWork.RollbackTransactionAsync(CancellationToken.None);
+                throw;
+            }
+        }
+
+        public async Task DeletePositionAsync(int id, CancellationToken cancellationToken = default)
+        {
+            await unitOfWork.BeginTransactionAsync(IsolationLevel.ReadCommitted, cancellationToken);
+            try
+            {
+                var position = await positionRepository.GetByIdAsync(id, cancellationToken);
+                if (position != null)
+                {
+                    positionRepository.Delete(position);
+                    await unitOfWork.SaveChangesAsync(cancellationToken);
+                }
+                await unitOfWork.CommitTransactionAsync(cancellationToken);
+                
+                cache.Remove($"{CacheKeyPrefix}{id}");
+                cache.Remove(AllPositionsCacheKey);
+            }
+            catch
+            {
+                await unitOfWork.RollbackTransactionAsync(CancellationToken.None);
+                throw;
             }
         }
     }

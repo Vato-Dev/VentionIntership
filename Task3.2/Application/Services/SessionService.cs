@@ -1,42 +1,71 @@
-﻿using Application.Abstractions;
+﻿
+using System.Data; 
+using Application.Abstractions;
+using Application.DTOs;
 using Domain.Models;
 
 namespace Application.Services
 {
-    public sealed class SessionService : ISessionService
+  public sealed class SessionService(IBaseRepository<Session> sessionRepository, IUnitOfWork unitOfWork) : ISessionService
     {
-        private readonly IBaseRepository<Session> _sessionRepository;
-        private readonly IUnitOfWork _unitOfWork;
+        public Task<Session?> GetSessionByIdAsync(int id, CancellationToken cancellationToken = default) 
+            => sessionRepository.GetByIdAsync(id, cancellationToken);
 
-        public SessionService(IBaseRepository<Session> sessionRepository, IUnitOfWork unitOfWork)
+        public Task<PagedResponse<Session>> GetAllSessionsAsync(int? keySetId = null, int? page = 1, int? pageSize = 10, CancellationToken cancellationToken = default) 
+            => sessionRepository.GetAllAsync(cancellationToken, keySetId, page, pageSize);
+
+        public async Task CreateSessionAsync(Session session, CancellationToken cancellationToken = default)
         {
-            _sessionRepository = sessionRepository;
-            _unitOfWork = unitOfWork;
-        }
-
-        public Task<Session?> GetSessionByIdAsync(int id) => _sessionRepository.GetByIdAsync(id);
-
-        public Task<IEnumerable<Session>> GetAllSessionsAsync() => _sessionRepository.GetAllAsync();
-
-        public async Task CreateSessionAsync(Session session)
-        {
-            await _sessionRepository.AddAsync(session);
-            await _unitOfWork.SaveChangesAsync();
-        }
-
-        public async Task UpdateSessionAsync(Session session)
-        {
-            _sessionRepository.Update(session);
-            await _unitOfWork.SaveChangesAsync();
-        }
-
-        public async Task DeleteSessionAsync(int id)
-        {
-            var session = await _sessionRepository.GetByIdAsync(id);
-            if (session != null)
+            await unitOfWork.BeginTransactionAsync(IsolationLevel.ReadCommitted, cancellationToken);
+            try
             {
-                _sessionRepository.Delete(session);
-                await _unitOfWork.SaveChangesAsync();
+                await sessionRepository.AddAsync(session, cancellationToken);
+                await unitOfWork.SaveChangesAsync(cancellationToken);
+                
+                await unitOfWork.CommitTransactionAsync(cancellationToken);
+            }
+            catch
+            {
+                await unitOfWork.RollbackTransactionAsync(CancellationToken.None);
+                throw;
+            }
+        }
+
+        public async Task UpdateSessionAsync(Session session, CancellationToken cancellationToken = default)
+        {
+            await unitOfWork.BeginTransactionAsync(IsolationLevel.ReadCommitted, cancellationToken);
+            try
+            {
+                sessionRepository.Update(session);
+                await unitOfWork.SaveChangesAsync(cancellationToken);
+                
+                await unitOfWork.CommitTransactionAsync(cancellationToken);
+            }
+            catch
+            {
+                await unitOfWork.RollbackTransactionAsync(CancellationToken.None);
+                throw;
+            }
+        }
+
+        public async Task DeleteSessionAsync(int id, CancellationToken cancellationToken = default)
+        {
+            await unitOfWork.BeginTransactionAsync(IsolationLevel.ReadCommitted, cancellationToken);
+            try
+            {
+                var session = await sessionRepository.GetByIdAsync(id, cancellationToken);
+                if (session != null)
+                {
+                    sessionRepository.Delete(session);
+                    await unitOfWork.SaveChangesAsync(cancellationToken);
+                }
+                
+                await unitOfWork.CommitTransactionAsync(cancellationToken);
+            }
+            catch
+            {
+                await unitOfWork.RollbackTransactionAsync(CancellationToken.None);
+                throw;
             }
         }
     }
