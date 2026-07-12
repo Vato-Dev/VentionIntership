@@ -42,8 +42,6 @@ namespace Api.Controllers
         public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken)
         {
             var session = await sessionService.GetSessionByIdAsync(id, cancellationToken);
-            if (session == null) return NotFound($"Session with ID {id} not found.");
-
             var response = new SessionResponseDto
             {
                 Id = session.Id,
