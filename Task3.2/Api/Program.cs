@@ -1,3 +1,5 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Api.Filters;
 using Api.Middlewares;
 using Api.WebAppBuilderExtensions;
@@ -14,6 +16,17 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers(options =>
 {
     options.Filters.Add<ValidationFilter>();
+}).AddJsonOptions(options => {
+    options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower;
+    options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+    options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles; //5.6 task
+    options.JsonSerializerOptions.NumberHandling = JsonNumberHandling.AllowReadingFromString | JsonNumberHandling.WriteAsString;//5.5 bigint task // i don't have long used so i made for int , works the same way
+});
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Limits.MaxRequestBodySize = 2 * 1024 * 1024; // 2 Megabytes for handling large json payloads 
 });
 //builder.Services.AddFluentValidationAutoValidation(); //todo make an action filter 
 builder.Services.AddPersistence();
