@@ -6,6 +6,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GrpcServer", "GrpcServer\Gr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GrpcClient", "GrpcClient\GrpcClient.csproj", "{B8DAADFA-214D-4141-A5AD-46886A7E4732}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApiGateway", "ApiGateway\ApiGateway.csproj", "{1EDA6445-7EBA-4CCF-B3FD-6505F7D08E13}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,9 @@ Global
 		{B8DAADFA-214D-4141-A5AD-46886A7E4732}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B8DAADFA-214D-4141-A5AD-46886A7E4732}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B8DAADFA-214D-4141-A5AD-46886A7E4732}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1EDA6445-7EBA-4CCF-B3FD-6505F7D08E13}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1EDA6445-7EBA-4CCF-B3FD-6505F7D08E13}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1EDA6445-7EBA-4CCF-B3FD-6505F7D08E13}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1EDA6445-7EBA-4CCF-B3FD-6505F7D08E13}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
