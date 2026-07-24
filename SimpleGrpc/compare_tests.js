@@ -21,8 +21,25 @@ export const options = {
         },
     },
 };
+let isConnected = false;
 
 export function runGrpc() {
+    if (!isConnected) {
+        client.connect('localhost:7168', { plaintext: true });
+        isConnected = true;
+    }
+
+    const payload = { number_a: 10, number_b: 20 };
+    const response = client.invoke('calculator.Calculator/Add', payload);
+
+    check(response, {
+        'gRPC Status OK': (r) => r && r.status === grpc.status_OK,
+        'gRPC Correct Result': (r) => r && r.message && r.message.result === 30,
+    });
+
+    sleep(0.01);
+}
+/*export function runGrpc() {
     client.connect('localhost:5120', { plaintext: true });
 
     const payload = { number_a: 10, number_b: 20 };
@@ -33,9 +50,9 @@ export function runGrpc() {
         'gRPC Correct Result': (r) => r.message && r.message.result === 30,
     });
 
-    client.close();
+   // client.close(); i won't close connection now to see all benefits of http/2
     sleep(0.01);
-}
+}*/ // This does not work since even if i won't close connection i'm trying to connect each time gives us even more errors and cpu usage went up to 40% and memory usage increased in 5 times
 
 export function runHttp() {
     const payload = JSON.stringify({ numberA: 10, numberB: 20 });
