@@ -2,14 +2,15 @@
 using System.Data; 
 using Application.Abstractions;
 using Application.DTOs;
+using Application.Exceptions;
 using Domain.Models;
 
 namespace Application.Services
 {
   public sealed class SessionService(IBaseRepository<Session> sessionRepository, IUnitOfWork unitOfWork) : ISessionService
     {
-        public Task<Session?> GetSessionByIdAsync(int id, CancellationToken cancellationToken = default) 
-            => sessionRepository.GetByIdAsync(id, cancellationToken);
+        public async Task<Session?> GetSessionByIdAsync(int id, CancellationToken cancellationToken = default)  //there i can't skip state machine for performance i need to await 
+            =>  await sessionRepository.GetByIdAsync(id, cancellationToken) ?? throw new NotFoundException("Session not found"); //TODO : make an custom exceptions and custom handler for specific exceptions
 
         public Task<PagedResponse<Session>> GetAllSessionsAsync(int? keySetId = null, int? page = 1, int? pageSize = 10, CancellationToken cancellationToken = default) 
             => sessionRepository.GetAllAsync(cancellationToken, keySetId, page, pageSize);

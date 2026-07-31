@@ -1,0 +1,32 @@
+﻿using FluentValidation;
+using Microsoft.AspNetCore.Mvc.Filters;
+
+namespace Api.Filters
+{
+    public class ValidationFilter : IAsyncActionFilter
+    {
+        public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
+        {
+            foreach (var argument in context.ActionArguments.Values)
+            {
+                if (argument == null) continue;
+
+                var validatorType = typeof(IValidator<>).MakeGenericType(argument.GetType());
+                var validator = context.HttpContext.RequestServices.GetService(validatorType) as IValidator;
+
+                if (validator != null)
+                {
+                    var validationContext = new ValidationContext<object>(argument);
+                    var validationResult = await validator.ValidateAsync(validationContext);
+
+                    if (!validationResult.IsValid)
+                    {
+                        // Бросаем исключение! Теперь его 100% поймает ваш ValidationExceptionHandler
+                        throw new FluentValidation.ValidationException(validationResult.Errors);
+                    }
+                }
+            }
+            await next();
+        }
+    }
+}
