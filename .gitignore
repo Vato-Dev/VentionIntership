@@ -1,7 +1,6 @@
 ﻿# OS / system files
 .DS_Store
 Thumbs.db
-
 # Environment files
 .env
 .env.*
@@ -53,6 +52,20 @@ packages/
 /.idea/**/gradle.xml
 /.idea/**/libraries/
 
+
+# Игнорировать .idea во всех вложенных проектах
+**/.idea/
+.idea/
+
+# Игнорировать .vs и кэш во всех вложенных проектах
+**/.vs/
+.vs/
+*.dtbcache.v2
+*.futdcache.v2
+
+# Игнорировать файлы окружения во всех папках
+**/.env
+**/.env.*
 # Visual Studio
 .vs/
 # Visual Studio Code
