@@ -1,15 +1,36 @@
-﻿using Api.Contracts;
+﻿using System.Collections.Concurrent;
+using Api.Contracts;
 using MassTransit;
 
 namespace Api.Consumers
 {
-    public class OrderCreatedConsumer(ILogger<OrderCreatedConsumer> logger) : IConsumer<OrderCreated>
+    public sealed class OrderCreatedConsumer(ILogger<OrderCreatedConsumer> logger) : IConsumer<OrderCreated>
     {
-        public Task Consume(ConsumeContext<OrderCreated> context)
+        private static readonly ConcurrentDictionary<Guid, bool> ProcessedOrders = new();
+
+        public async Task Consume(ConsumeContext<OrderCreated> context)
         {
-            logger.LogInformation("order is accepted {id}, ordername {name}", context.Message.OrderId, context.Message.ItemName);
-            
-            return Task.CompletedTask;
+            var message = context.Message;
+            if (ProcessedOrders.ContainsKey(message.OrderId))
+            {
+                logger.LogWarning("Order {OrderId} has been already processed.", message.OrderId);
+                return;
+            }
+
+            logger.LogInformation("Processing order: {OrderId} ({ItemName})", message.OrderId, message.ItemName);
+
+            if (message.ItemName.Equals("error", StringComparison.OrdinalIgnoreCase))
+            {
+                logger.LogError("Error , using retry policies");
+                throw new InvalidOperationException("failure");
+            }
+
+            await Task.Delay(1000);
+
+            ProcessedOrders.TryAdd(message.OrderId, true);
+
+            logger.LogInformation("Order {OrderId} successfully processed", message.OrderId);
         }
     }
+
 }

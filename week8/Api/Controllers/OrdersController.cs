@@ -5,20 +5,23 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Controllers
 {
     [ApiController]
+    [Route("api/[controller]")] 
     public class OrdersController(IPublishEndpoint publishEndpoint, ILogger<OrdersController> logger) : ControllerBase
     {
-        private readonly IPublishEndpoint _publishEndpoint = publishEndpoint;
-        private readonly ILogger<OrdersController> _logger = logger;
-
+        
         [HttpPost]
-        public async Task<IActionResult> CreateOrder([FromQuery] string itemName)
+        public async Task<IActionResult> CreateOrder([FromQuery]string itemName, decimal price)
         {
-            var message = new OrderCreated(Guid.NewGuid(), itemName);
+            var orderId = Guid.NewGuid();
+            var message = new OrderCreated(orderId, itemName, price);
 
-            _logger.LogInformation("sent in Rabbit..");
-
-            await _publishEndpoint.Publish(message);
-
-            return Ok(new { text = "order is sent", order = message });
-        }    }
+            await publishEndpoint.Publish(message);
+            
+            logger.LogInformation($"Order created: {orderId}");
+            return Ok(new
+            {
+                Message = "Order sent for processing", OrderId = orderId
+            });
+        }
+    }
 }
