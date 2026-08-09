@@ -9,6 +9,7 @@ const string RoutingKey = "orders.new";
 const string DlxExchange = "my-dlx";
 const string DlqQueue = "my-main-queue.dlq";
 const string DlxRoutingKey = "orders.failed";
+const int TtlValue = 55555;
 
 var factory = new ConnectionFactory { HostName = "localhost" };
 factory.UserName = "guest"; //defalt but i had error , so i'm hardcoding it
@@ -25,7 +26,8 @@ await channel.ExchangeDeclareAsync(MainExchange, ExchangeType.Topic);
 var queueArguments = new Dictionary<string, object?>
 {
     { "x-dead-letter-exchange", DlxExchange },
-    { "x-dead-letter-routing-key", DlxRoutingKey }
+    { "x-dead-letter-routing-key", DlxRoutingKey },
+    { "x-message-ttl", TtlValue }   
 };
 
 await channel.QueueDeclareAsync(
