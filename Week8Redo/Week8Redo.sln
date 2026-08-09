@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PureRabbitClient", "PureRabbitClient\PureRabbitClient.csproj", "{379AE44D-FAE0-4209-A5BF-39A84CF073D4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PureReceiver", "PureReceiver\PureReceiver.csproj", "{701AE731-18EC-45FF-8A7A-18577BD2A017}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{379AE44D-FAE0-4209-A5BF-39A84CF073D4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{379AE44D-FAE0-4209-A5BF-39A84CF073D4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{379AE44D-FAE0-4209-A5BF-39A84CF073D4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{379AE44D-FAE0-4209-A5BF-39A84CF073D4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{701AE731-18EC-45FF-8A7A-18577BD2A017}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{701AE731-18EC-45FF-8A7A-18577BD2A017}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{701AE731-18EC-45FF-8A7A-18577BD2A017}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{701AE731-18EC-45FF-8A7A-18577BD2A017}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
