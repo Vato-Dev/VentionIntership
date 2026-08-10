@@ -36,9 +36,20 @@ class Program
 
                 cfg.ReceiveEndpoint("order-processing-queue", e =>
                 {
+                    e.UseTimeout(t => t.Timeout = TimeSpan.FromSeconds(5)); 
                     e.ConcurrentMessageLimit = 2;
-                    e.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(2)));
-
+                    e.UseMessageRetry(r =>
+                    {
+                        r.Interval(3, TimeSpan.FromSeconds(2));
+                        r.Ignore<ArgumentException>();
+                    });
+                    e.UseCircuitBreaker(cb =>
+                    {
+                        cb.TrackingPeriod = TimeSpan.FromMinutes(1);
+                        cb.TripThreshold = 15;  
+                        cb.ActiveThreshold = 10;     
+                        cb.ResetInterval = TimeSpan.FromMinutes(5);
+                    });
                     e.ConfigureConsumer<OrderProcessedConsumer>(context);
                 });
             });
