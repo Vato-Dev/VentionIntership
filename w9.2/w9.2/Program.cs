@@ -42,10 +42,12 @@ var host = builder.Build();
 var runTask = host.RunAsync();
 //to not make things simpler i'll just send this messages at start
 var bus = host.Services.GetRequiredService<IBus>();
-for (int i = 0; i < 10; i++)
+/*for (int i = 0; i < 10; i++)
 {
-    await bus.Publish(new OrderProcessedEvent(Guid.NewGuid()));
-    Console.WriteLine($"Published message {i + 1}");
-}
+    await bus.Publish(new OrderProcessedEvent(Guid.NewGuid()), context =>
+    {
+        context.CorrelationId = Guid.NewGuid(); 
+    });    Console.WriteLine($"Published message {i + 1}");
+}*/
 
 await runTask;
