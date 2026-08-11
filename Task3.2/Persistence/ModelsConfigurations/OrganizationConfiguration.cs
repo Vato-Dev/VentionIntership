@@ -17,6 +17,17 @@ namespace Persistence.ModelsConfigurations
             builder.Property(o => o.StreetAddress)
                 .HasMaxLength(500)
                 .IsRequired();
+            
+            builder.Property(c=>c.CreatedAt)
+                .HasConversion(c=>c, 
+                c=> c.HasValue ? DateTime.SpecifyKind(c.Value, DateTimeKind.Utc):null)
+                .HasColumnType("timestamp with time zone");      
+            
+            builder.Property(c=>c.UpdatedAt)
+                .HasConversion(c=>c, 
+                c=> c.HasValue ? DateTime.SpecifyKind(c.Value, DateTimeKind.Utc):null)
+                .HasColumnType("timestamp with time zone");      
+
         }
     }
 }

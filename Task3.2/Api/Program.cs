@@ -1,3 +1,5 @@
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Api.Filters;
@@ -5,13 +7,27 @@ using Api.Middlewares;
 using Api.WebAppBuilderExtensions;
 using Application.SericeCollectionExtension;
 using Application.Validators;
+using dotenv.net;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Persistence;
+using Persistence.Extensions;
+using Persistence.PersistenceOptions;
 using Persistence.ServiceCollectionExtension;
 
 var builder = WebApplication.CreateBuilder(args);
+
+//todo : remove all regions and refactor Code to get rid of them
+#region EnvConfiguration
+DotEnv.Fluent()
+    .WithOverwriteExistingVars()
+    .WithTrimValues()
+    .WithProbeForEnv(6)
+    .Load();
+
+#endregion
 
 builder.Services.AddControllers(options =>
 {
@@ -30,11 +46,19 @@ builder.WebHost.ConfigureKestrel(options =>
 });
 //builder.Services.AddFluentValidationAutoValidation(); //todo make an action filter 
 builder.Services.AddPersistence();
+builder.Services.ConfigurePersistenceOptions();
+
 builder.Services.AddApplication();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
+
+builder.Services.AddDbContext<AppDbContext>((serviceProvider, options) =>
+{
+    var dbOptions = serviceProvider.GetRequiredService<IOptions<DatabaseOptions>>().Value;
+    
+    options.UseNpgsql(dbOptions.ConnectionString);
+});
+
 builder.Services.AddMemoryCache();
 builder.ConfigureProblemDetails();
 builder.Services.AddExceptionHandler<ValidationExceptionHandler>();
@@ -44,19 +68,8 @@ builder.Services.AddValidatorsFromAssemblyContaining<UserCreateDtoValidator>();
 
 var app = builder.Build();
 app.UseExceptionHandler();
-using (var scope = app.Services.CreateScope())
-{
-    var services = scope.ServiceProvider;
-    try
-    {
-        var context = services.GetRequiredService<AppDbContext>();
-        DatabaseSeeder.SeedData(context);
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"An error occurred while seeding the database: {ex.Message}"); //log in console since i had error and it helped to define it
-    }
-}
+
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {

@@ -8,9 +8,9 @@ namespace Application.Validators
         public UserCreateDtoValidator()
         {
             RuleFor(x => x.Username)
-                .NotEmpty().WithMessage("Username is required.")
-                .MinimumLength(3).WithMessage("Username must be at least 3 characters long.")
-                .MaximumLength(50).WithMessage("Username must not exceed 50 characters.");
+                .NotEmpty().WithMessage("Name is required.")
+                .MinimumLength(3).WithMessage("Name must be at least 3 characters long.")
+                .MaximumLength(50).WithMessage("Name must not exceed 50 characters.");
 
             RuleFor(x => x.Email)
                 .NotEmpty().WithMessage("Email address is required.")
@@ -33,9 +33,9 @@ namespace Application.Validators
                 .GreaterThan(0).WithMessage("Id must be a positive integer.");
 
             RuleFor(x => x.Username)
-                .NotEmpty().WithMessage("Username is required.")
-                .MinimumLength(3).WithMessage("Username must be at least 3 characters long.")
-                .MaximumLength(50).WithMessage("Username must not exceed 50 characters.");
+                .NotEmpty().WithMessage("Name is required.")
+                .MinimumLength(3).WithMessage("Name must be at least 3 characters long.")
+                .MaximumLength(50).WithMessage("Name must not exceed 50 characters.");
 
             RuleFor(x => x.Email)
                 .NotEmpty().WithMessage("Email address is required.")

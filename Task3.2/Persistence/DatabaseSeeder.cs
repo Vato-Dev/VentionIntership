@@ -4,7 +4,7 @@ using Domain.Models;
 
 namespace Persistence
 {
-    public static class DatabaseSeeder
+ /*   public static class DatabaseSeeder
     {
         public static void SeedData(AppDbContext context)
         {
@@ -34,7 +34,7 @@ namespace Persistence
                 context.Users.AddRange(
                     new User 
                     { 
-                        Username = "vlad_osman", 
+                        Name = "vlad_osman", 
                         Email = "vladimer.osmanovi@example.com", 
                         PositionId = 1, 
                         OrganizationId = 1, 
@@ -42,7 +42,7 @@ namespace Persistence
                     },
                     new User 
                     { 
-                        Username = "gia_ghariba", 
+                        Name = "gia_ghariba", 
                         Email = "gia.gharibashvili@example.com", 
                         PositionId = 2, 
                         OrganizationId = 1, 
@@ -66,5 +66,5 @@ namespace Persistence
                 context.SaveChanges();
             }
         }
-    }
+    }*/
 }
