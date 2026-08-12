@@ -24,7 +24,7 @@ var builder = WebApplication.CreateBuilder(args);
 DotEnv.Fluent()
     .WithOverwriteExistingVars()
     .WithTrimValues()
-    .WithProbeForEnv(6)
+    .WithProbeForEnv()
     .Load();
 
 #endregion

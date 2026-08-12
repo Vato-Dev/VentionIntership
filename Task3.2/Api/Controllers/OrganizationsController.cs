@@ -1,41 +1,41 @@
-﻿// using Application.Abstractions;
-// using Application.DTOs;
-// using Domain.Models;
-// using Microsoft.AspNetCore.Mvc;
-//
-// namespace Api.Controllers
-// {
-//     [ApiController]
-//     [Route("api/[controller]")]
-//     public sealed class OrganizationsController(IOrganizationService organizationService) : ControllerBase
-//     {
-//         [HttpGet]
-//         public async Task<IActionResult> GetAll(
-//             CancellationToken cancellationToken,
-//             [FromQuery] int? keySetId = null, 
-//             [FromQuery] int? page = 1, 
-//             [FromQuery] int? pageSize = 10)
-//         {
-//             var pagedOrganizations = await organizationService.GetAllOrganizationsAsync(cancellationToken,keySetId, page, pageSize);
-//             
-//             var response = new PagedResponse<OrganizationResponseDto>
-//             {
-//                 Data = pagedOrganizations.Data.Select(o => new OrganizationResponseDto
-//                 {
-//                     Id = o.Id,
-//                     Name = o.Name,
-//                     StreetAddress = o.StreetAddress
-//                 }).ToList(),
-//                 PageNumber = pagedOrganizations.PageNumber,
-//                 PageSize = pagedOrganizations.PageSize,
-//                 TotalItems = pagedOrganizations.TotalItems,
-//                 TotalPages = pagedOrganizations.TotalPages,
-//                 LastSeenId = pagedOrganizations.LastSeenId
-//             };
-//
-//             return Ok(response);
-//         }
-//
+﻿using Application.Abstractions;
+using Application.DTOs;
+using Domain.Models;
+using Microsoft.AspNetCore.Mvc;
+
+namespace Api.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    public sealed class OrganizationsController(IOrganizationService organizationService) : ControllerBase
+    {
+        [HttpGet]
+        public async Task<IActionResult> GetAll(
+            CancellationToken cancellationToken,
+            [FromQuery] int? keySetId = null,
+            [FromQuery] int? page = 1,
+            [FromQuery] int? pageSize = 10)
+        {
+            var pagedOrganizations = await organizationService.GetAllOrganizationsAsync(cancellationToken, keySetId, page, pageSize);
+
+            var response = new PagedResponse<OrganizationResponseDto>
+            {
+                Data = pagedOrganizations.Data.Select(o => new OrganizationResponseDto
+                {
+                    Id = o.Id, Name = o.Name, StreetAddress = o.StreetAddress
+                }).ToList(),
+                PageNumber = pagedOrganizations.PageNumber,
+                PageSize = pagedOrganizations.PageSize,
+                TotalItems = pagedOrganizations.TotalItems,
+                TotalPages = pagedOrganizations.TotalPages,
+                LastSeenId = pagedOrganizations.LastSeenId
+            };
+
+            return Ok(response);
+        }
+    }
+}
+
 //         [HttpGet("{id:int}")]
 //         public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken)
 //         {

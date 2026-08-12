@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Persistence.Extensions;
 using Persistence.PersistenceOptions;
 
 namespace Persistence.ServiceCollectionExtension
@@ -16,7 +17,7 @@ namespace Persistence.ServiceCollectionExtension
         public static void ConfigurePersistenceOptions(this IServiceCollection services)
         {
             services.AddOptions<DatabaseOptions>() 
-                .Configure(options => options.ConnectionString = Environment.GetEnvironmentVariable(DatabaseOptions.EnvironmentKey) ?? string.Empty)
+                .Configure(options => options.ConnectionString = DatabaseOptions.EnvironmentKey.FromEnvRequired())
                 .ValidateDataAnnotations()
                 .ValidateOnStart(); 
         }
