@@ -1,0 +1,26 @@
+﻿version: '3.8'
+
+services:
+  api:
+    image: api
+    build:
+      context: .
+      dockerfile: Api/Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      - rabbitmq
+    environment:
+      - ConnectionStrings__RabbitMQ=amqp://guest:guest@rabbitmq:5672/
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: week8RabbitContainer
+    ports:
+      - "5672:5672" 
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+
+volumes:
+  rabbitmq_data:

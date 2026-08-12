@@ -1,0 +1,38 @@
+﻿services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: local-rabbitmq
+    ports:
+      - "5672:5672"   
+      - "15672:15672"
+    networks:
+      - telemetry-net
+
+  # i googled it and it shows path-trace/latency/bottlenechs useful in microservices since everything is distributed
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: local-jaeger
+    ports:
+      - "16686:16686"
+      - "4317:4317" 
+    networks:
+      - telemetry-net
+
+  worker-service:
+    image: my-worker-app:latest 
+    build:
+      context: .
+      dockerfile: w9.2/Dockerfile
+    environment:
+      - RabbitMq__Host=rabbitmq
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317 
+      - OTEL_SERVICE_NAME=WorkerService
+    depends_on:
+      - rabbitmq
+      - jaeger
+    networks:
+      - telemetry-net
+
+networks:
+  telemetry-net:
+    driver: bridge
