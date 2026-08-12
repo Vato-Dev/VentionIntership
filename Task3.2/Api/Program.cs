@@ -54,9 +54,9 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddDbContext<AppDbContext>((serviceProvider, options) =>
 {
-    var dbOptions = serviceProvider.GetRequiredService<IOptions<DatabaseOptions>>().Value;
+    var dbOptions = serviceProvider.GetRequiredService<IOptions<DatabaseOptions>>().Value; //todo build conn string from env part by part
     
-    options.UseNpgsql(dbOptions.ConnectionString);
+    options.UseNpgsql(dbOptions.BuildConnectionString());
 });
 
 builder.Services.AddMemoryCache();
@@ -67,6 +67,12 @@ builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddValidatorsFromAssemblyContaining<UserCreateDtoValidator>();
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var logger =  scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+     await scope.ServiceProvider.RunMigrationsAndSeed(logger);
+}
 app.UseExceptionHandler();
 
 

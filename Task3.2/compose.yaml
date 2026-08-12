@@ -8,17 +8,22 @@
       - "8080:8080"
     depends_on:
       - postgres
+    env_file:
+      - .env
     environment:
-      - DB_CONNECTION_STRING=Host=postgres;Port=${DB_PORT};Database=${DB_NAME};Username=${DB_USER};Password=${DB_PASSWORD}
-
+      - ASPNETCORE_ENVIRONMENT=Development
+      - DB_HOST=postgres
+  
+  
   postgres:
     image:  postgres:16-alpine
     container_name: vention_project_db
     environment:
       POSTGRES_USER : ${DB_USER}
       POSTGRES_PASSWORD : ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME} 
     ports:
-      - "${DB_PORT}:5432"
+      - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql
 volumes:

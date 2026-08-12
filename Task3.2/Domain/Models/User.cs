@@ -9,6 +9,7 @@ namespace Domain.Models
         public string Name { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
         public string Role { get; set; } = "User"; 
+        public string PasswordHash { get; set; } = string.Empty;
         public int PositionId { get; set; }
         
         public Position Position { get; set; } = null!;

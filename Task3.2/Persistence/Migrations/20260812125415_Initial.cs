@@ -49,6 +49,7 @@ namespace Persistence.Migrations
                     Name = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
                     Email = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
                     Role = table.Column<string>(type: "text", nullable: false),
+                    PasswordHash = table.Column<string>(type: "text", nullable: false),
                     PositionId = table.Column<int>(type: "integer", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
@@ -64,7 +65,7 @@ namespace Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Membership",
+                name: "Memberships",
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "text", nullable: false),
@@ -75,15 +76,15 @@ namespace Persistence.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Membership", x => x.Id);
+                    table.PrimaryKey("PK_Memberships", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Membership_Organizations_OrganizationId",
+                        name: "FK_Memberships_Organizations_OrganizationId",
                         column: x => x.OrganizationId,
                         principalTable: "Organizations",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_Membership_Users_UserId",
+                        name: "FK_Memberships_Users_UserId",
                         column: x => x.UserId,
                         principalTable: "Users",
                         principalColumn: "Id",
@@ -114,13 +115,13 @@ namespace Persistence.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_Membership_OrganizationId",
-                table: "Membership",
+                name: "IX_Memberships_OrganizationId",
+                table: "Memberships",
                 column: "OrganizationId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Membership_UserId",
-                table: "Membership",
+                name: "IX_Memberships_UserId",
+                table: "Memberships",
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
@@ -138,7 +139,7 @@ namespace Persistence.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Membership");
+                name: "Memberships");
 
             migrationBuilder.DropTable(
                 name: "Sessions");
