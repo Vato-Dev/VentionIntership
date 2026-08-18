@@ -12,7 +12,6 @@ namespace Persistence
         public DbSet<User> Users { get; set; }
         public DbSet<Session> Sessions { get; set; }
         public DbSet<Organization> Organizations { get; set; }
-        public DbSet<Position> Positions { get; set; }
         public DbSet<Membership> Memberships { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

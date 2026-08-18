@@ -2,25 +2,21 @@
 
 namespace Application.DTOs
 {
-    public sealed class OrganizationCreateDto
+    public sealed record OrganizationCreateDto
     {
         public string Name { get; set; } = string.Empty;
-        public string StreetAddress { get; set; } = string.Empty;
     }
 
-    public sealed class OrganizationUpdateDto
+    public sealed record OrganizationUpdateDto
     {
-        public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
-        public string StreetAddress { get; set; } = string.Empty;
     }
 
-    public sealed class OrganizationResponseDto
+    public sealed record OrganizationResponseDto
     {   
-        [JsonNumberHandling(JsonNumberHandling.WriteAsString)] 
-
-        public string Id { get; set; }
+        public string Id { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;
-        public string StreetAddress { get; set; } = string.Empty;
+        public DateTime? CreatedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
     }
 }

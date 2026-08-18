@@ -1,22 +1,22 @@
 ﻿namespace Application.DTOs
 {
-    public sealed class SessionCreateDto
+    public sealed record SessionCreateDto
     {
-        public int UserId { get; set; }
+        public string UserId { get; set; } = string.Empty;
         public DateTime ExpiresAt { get; set; }
     }
 
-    public sealed class SessionUpdateDto
+    public sealed record SessionUpdateDto
     {
-        public int Id { get; set; }
+        public string Id { get; set; } = string.Empty;
         public bool IsActive { get; set; }
         public DateTime ExpiresAt { get; set; }
     }
 
-    public sealed class SessionResponseDto
+    public sealed record SessionResponseDto
     {
-        public int Id { get; set; }
-        public int UserId { get; set; }
+        public string Id { get; set; } = string.Empty;
+        public string UserId { get; set; } =  string.Empty;
         public bool IsActive { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime ExpiresAt { get; set; }

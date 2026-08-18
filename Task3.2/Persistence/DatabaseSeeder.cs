@@ -5,38 +5,13 @@ namespace Persistence;
 
 public static class DatabaseSeeder
 {
-    public static async Task SeedAsync(AppDbContext context)
+    public async static Task SeedAsync(AppDbContext context)
     {
-        // Positions
-        if (!await context.Positions.AnyAsync())
-        {
-            context.Positions.AddRange(
-                new Position
-                {
-                    Title = "Junior Backend Developer",
-                    Description = "Responsible for building core server-side logic using .NET."
-                },
-                new Position
-                {
-                    Title = "Senior Fullstack Engineer",
-                    Description = "Leads architecture and handles both frontend and backend systems."
-                },
-                new Position
-                {
-                    Title = "Project Manager",
-                    Description = "Coordinates timelines, team deliveries, and client goals."
-                }
-            );
-            await context.SaveChangesAsync();
-        }
-
-        // Organizations
         if (!await context.Organizations.AnyAsync())
         {
             context.Organizations.AddRange(
                 new Organization
                 {
-                    Id = Guid.NewGuid().ToString(),
                     Name = "TechVanguard Solutions",
                     StreetAddress = "128 Innovation Way, Suite 400",
                     CreatedAt = DateTime.UtcNow,
@@ -44,89 +19,82 @@ public static class DatabaseSeeder
                 },
                 new Organization
                 {
-                    Id = Guid.NewGuid().ToString(),
                     Name = "Apex Global Systems",
                     StreetAddress = "45 Parallel Avenue",
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
                 }
             );
+            
             await context.SaveChangesAsync();
         }
 
-        // Users
         if (!await context.Users.AnyAsync())
         {
-            var juniorPosition = await context.Positions.FirstAsync(p => p.Title == "Junior Backend Developer");
-            var seniorPosition = await context.Positions.FirstAsync(p => p.Title == "Senior Fullstack Engineer");
+            DateTime nowUtc = DateTime.UtcNow;
 
-            var user1Id = Guid.NewGuid().ToString();
-            var user2Id = Guid.NewGuid().ToString();
+            var user1 = new User
+            {
+                Name = "vlad_osman",
+                Email = "vladimer.osmanovi@example.com",
+                Role = "User",
+                PasswordHash = "someHashInFuture", 
+                CreatedAt = nowUtc
+            };
 
-            context.Users.AddRange(
-                new User
-                {
-                    Id = user1Id,
-                    Name = "vlad_osman",
-                    Email = "vladimer.osmanovi@example.com",
-                    Role = "User",
-                    PositionId = juniorPosition.Id,
-                    CreatedAt = DateTime.UtcNow
-                },
-                new User
-                {
-                    Id = user2Id,
-                    Name = "gia_ghariba",
-                    Email = "gia.gharibashvili@example.com",
-                    Role = "Admin",
-                    PositionId = seniorPosition.Id,
-                    CreatedAt = DateTime.UtcNow
-                }
-            );
+            var user2 = new User
+            {
+                Name = "gia_ghariba",
+                Email = "gia.gharibashvili@example.com",
+                Role = "Admin",
+                PasswordHash = "someHashInFuture", 
+                CreatedAt = nowUtc
+            };
+
+            context.Users.AddRange(user1, user2);
+
+
             await context.SaveChangesAsync();
 
-            // Memberships
             var org1 = await context.Organizations.FirstAsync(o => o.Name == "TechVanguard Solutions");
 
             context.Memberships.AddRange( 
                 new Membership
                 {
-                    Id = Guid.NewGuid().ToString(),
-                    UserId = user1Id,
+                    UserId = user1.Id, 
                     OrganizationId = org1.Id,
                     Role = "Member",
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = nowUtc
                 },
                 new Membership
                 {
-                    Id = Guid.NewGuid().ToString(),
-                    UserId = user2Id,
+                    UserId = user2.Id, 
                     OrganizationId = org1.Id,
                     Role = "Owner",
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = nowUtc
                 }
             );
-            await context.SaveChangesAsync();
 
-            // Sessions
             context.Sessions.AddRange(
                 new Session
                 {
-                    AccessToken = Guid.NewGuid().ToString("N"),
-                    CreatedAt = DateTime.UtcNow,
-                    ExpiresAt = DateTime.UtcNow.AddDays(7),
+                    AccessToken = Guid.NewGuid().ToString("N"), 
+                    CreatedAt = nowUtc,
+                    ExpiresAt = nowUtc.AddDays(7),
                     IsActive = true,
-                    UserId = user1Id
+                    UserId = user1.Id
                 },
                 new Session
                 {
                     AccessToken = Guid.NewGuid().ToString("N"),
-                    CreatedAt = DateTime.UtcNow,
-                    ExpiresAt = DateTime.UtcNow.AddDays(7),
+                    CreatedAt = nowUtc,
+                    ExpiresAt = nowUtc.AddDays(7),
                     IsActive = true,
-                    UserId = user2Id
+                    UserId = user2.Id
                 }
             );
+
+            // Финальное сохранение всех связей
             await context.SaveChangesAsync();
         }
     }

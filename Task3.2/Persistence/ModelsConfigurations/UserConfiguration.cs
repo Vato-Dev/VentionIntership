@@ -17,14 +17,12 @@ namespace Persistence.ModelsConfigurations
             builder.Property(u => u.Email)
                 .HasMaxLength(256)
                 .IsRequired();
-
-          
-
-            builder.HasOne(u => u.Position)
-                .WithMany(p => p.Users)
-                .HasForeignKey(u => u.PositionId)
-                .OnDelete(DeleteBehavior.Restrict);
             
+            builder.Property(u => u.Id)
+                .HasDefaultValueSql("uuidv7()")
+                .ValueGeneratedOnAdd();
+            
+            builder.HasIndex(u => u.Email).IsUnique();
         }
     }
 }

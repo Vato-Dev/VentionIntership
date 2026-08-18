@@ -1,8 +1,7 @@
 ﻿namespace Domain.Models
 {
-    public sealed class Organization
+    public sealed class Organization: DomainEntity<Guid>
     {
-        public string Id { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;
         public DateTime? CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }

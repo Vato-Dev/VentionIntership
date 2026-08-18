@@ -6,7 +6,8 @@ using Api.Filters;
 using Api.Middlewares;
 using Api.WebAppBuilderExtensions;
 using Application.SericeCollectionExtension;
-using Application.Validators;
+//using Application.SericeCollectionExtension;
+//using Application.Validators;
 using dotenv.net;
 using FluentValidation;
 using FluentValidation.AspNetCore;
@@ -64,7 +65,7 @@ builder.ConfigureProblemDetails();
 builder.Services.AddExceptionHandler<ValidationExceptionHandler>();
 builder.Services.AddExceptionHandler<NotFoundExceptionHandler>();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
-builder.Services.AddValidatorsFromAssemblyContaining<UserCreateDtoValidator>();
+//builder.Services.AddValidatorsFromAssemblyContaining<UserCreateDtoValidator>();
 
 var app = builder.Build();
 

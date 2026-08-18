@@ -9,7 +9,10 @@ namespace Persistence.ModelsConfigurations
         public void Configure(EntityTypeBuilder<Organization> builder)
         {
             builder.HasKey(o => o.Id);
-
+            builder.Property(u => u.Id)
+                .HasDefaultValueSql("uuidv7()")
+                .ValueGeneratedOnAdd();
+            
             builder.Property(o => o.Name)
                 .HasMaxLength(256)
                 .IsRequired();

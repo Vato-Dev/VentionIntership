@@ -9,6 +9,9 @@ namespace Persistence.ModelsConfigurations
         public void Configure(EntityTypeBuilder<Membership> builder)
         {
             builder.HasKey(m => m.Id);
+            builder.Property(u => u.Id)
+                .HasDefaultValueSql("uuidv7()")
+                .ValueGeneratedOnAdd();
             
             builder.HasOne(m=>m.User)
                 .WithMany(m=>m.Memberships)
@@ -25,6 +28,11 @@ namespace Persistence.ModelsConfigurations
                 c => c, 
                 c => c.HasValue ? DateTime.SpecifyKind(c.Value, DateTimeKind.Utc) : null)
                 .HasColumnType("timestamp with time zone");      
+            
+            builder.HasIndex(m => new { m.UserId, m.OrganizationId })
+                .IsUnique();
+            
+            builder.HasIndex(m => m.OrganizationId);
         }
     }
 }

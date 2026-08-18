@@ -1,29 +1,31 @@
 ﻿namespace Application.DTOs
 {
-    public sealed class UserCreateDto
+    public sealed record UserCreateDto
     {
-        public string Username { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
-        public int PositionId { get; set; }
-        public int OrganizationId { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
     }
 
-    public sealed class UserUpdateDto
+    public sealed record UserUpdateDto
     {
-        public int Id { get; set; }
-        public string Username { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
-        public int PositionId { get; set; }
-        public int OrganizationId { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string? Password { get; set; } 
     }
 
-    public sealed class UserResponseDto
+    public sealed record UserResponseDto
     {
-        public int Id { get; set; }
-        public string Username { get; set; } = string.Empty;
+        public string Id { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
-        public int PositionId { get; set; }
-        public int OrganizationId { get; set; }
-        public DateTime CreatedAt { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public List<UserOrganizationMembershipDto> Organisations { get; set; } = [];
     }
+    public sealed record UserOrganizationMembershipDto
+    {
+        public string Id { get; set; } = string.Empty; 
+        public string Name { get; set; } = string.Empty; 
+        public string Role { get; set; } = string.Empty;
+    }
+
 }

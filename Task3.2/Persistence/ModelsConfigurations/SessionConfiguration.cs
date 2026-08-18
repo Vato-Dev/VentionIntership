@@ -9,7 +9,7 @@ namespace Persistence.ModelsConfigurations
         public void Configure(EntityTypeBuilder<Session> builder)
         {
             builder.HasKey(s => s.Id);
-
+            
             builder.Property(s => s.CreatedAt).HasConversion(c => c, 
             c => DateTime.SpecifyKind(c, DateTimeKind.Utc))
                 .HasColumnType("timestamp with time zone");

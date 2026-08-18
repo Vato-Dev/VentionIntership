@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Persistence.Extensions;
 using Persistence.PersistenceOptions;
+using Persistence.Repositories;
 
 namespace Persistence.ServiceCollectionExtension
 {
@@ -14,7 +15,8 @@ namespace Persistence.ServiceCollectionExtension
         public static void AddPersistence(this IServiceCollection services)
         {
             services.AddScoped<IUnitOfWork, UnitOfWork>();
-            services.AddScoped(typeof(IBaseRepository<>), typeof(BaseRepository<>));
+            services.AddScoped(typeof(IBaseRepository<,>), typeof(BaseRepository<,>));
+            services.AddScoped<IMembershipRepository,MembershipRepository>();
         }
         public static void ConfigurePersistenceOptions(this IServiceCollection services)
         {
