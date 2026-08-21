@@ -1,4 +1,6 @@
-﻿namespace Api.WebAppBuilderExtensions
+﻿using Infrastructure.ServiceCollectionExtension;
+
+namespace Api.WebAppBuilderExtensions
 {
     public static class WebAppBuilderExtensions
     {
@@ -9,6 +11,14 @@
                     context.ProblemDetails.Extensions["traceId"] = context.HttpContext.TraceIdentifier;
                 };
             });
+        }
+
+        public static void AddInfrastructure(this WebApplicationBuilder builder)
+        {
+            builder.Services
+                .AddRedisConfiguration()
+                .AddFileSizeConfiguration()
+                .AddFileUploadServices();
         }
     }
 }

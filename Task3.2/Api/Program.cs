@@ -2,8 +2,8 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Api.ExceptionHandlers;
 using Api.Filters;
-using Api.Middlewares;
 using Api.WebAppBuilderExtensions;
 using Application.SericeCollectionExtension;
 //using Application.SericeCollectionExtension;
@@ -14,7 +14,6 @@ using FluentValidation.AspNetCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Persistence;
-using Persistence.Extensions;
 using Persistence.PersistenceOptions;
 using Persistence.ServiceCollectionExtension;
 
@@ -47,6 +46,7 @@ builder.WebHost.ConfigureKestrel(options =>
 });
 //builder.Services.AddFluentValidationAutoValidation(); //todo make an action filter 
 builder.Services.AddPersistence();
+builder.AddInfrastructure();
 builder.Services.ConfigurePersistenceOptions();
 
 builder.Services.AddApplication();

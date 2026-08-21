@@ -13,6 +13,29 @@ namespace Persistence.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
+                name: "Files",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "uuidv7()"),
+                    Filename = table.Column<string>(type: "character varying(1024)", maxLength: 1024, nullable: false),
+                    Size = table.Column<long>(type: "bigint", nullable: false),
+                    Status = table.Column<int>(type: "integer", nullable: false),
+                    ContentType = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
+                    Checksum = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
+                    StorageKey = table.Column<string>(type: "character varying(1024)", maxLength: 1024, nullable: false),
+                    OrganisationId = table.Column<Guid>(type: "uuid", nullable: false),
+                    OwnerId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Application = table.Column<string>(type: "text", nullable: true),
+                    ProcessingError = table.Column<string>(type: "text", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Files", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Organizations",
                 columns: table => new
                 {
@@ -94,6 +117,17 @@ namespace Persistence.Migrations
                 });
 
             migrationBuilder.CreateIndex(
+                name: "IX_Files_OrganisationId_Checksum",
+                table: "Files",
+                columns: new[] { "OrganisationId", "Checksum" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Files_OwnerId",
+                table: "Files",
+                column: "OwnerId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Memberships_OrganizationId",
                 table: "Memberships",
                 column: "OrganizationId");
@@ -119,6 +153,9 @@ namespace Persistence.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "Files");
+
             migrationBuilder.DropTable(
                 name: "Memberships");
 

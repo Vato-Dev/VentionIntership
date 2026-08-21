@@ -13,7 +13,7 @@
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - DB_HOST=postgres
-  
+      - REDIS_HOST=redis
   
   postgres:
     image:  postgres:18-alpine
@@ -26,7 +26,17 @@
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql
+        
+  redis :  #without passwords for now and also i don't like the api enviroment configuration should check it after
+    image : redis:alpine
+    container_name: redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
 volumes:
   pgdata:
+  redis-data:
     
   

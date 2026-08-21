@@ -1,10 +1,10 @@
 ﻿using Application.Abstractions;
+using Domain.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Persistence.Extensions;
 using Persistence.PersistenceOptions;
 using Persistence.Repositories;
 

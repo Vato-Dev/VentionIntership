@@ -22,39 +22,103 @@ namespace Persistence.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("Domain.Models.FileModel", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValueSql("uuidv7()");
+
+                    b.Property<string>("Application")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Checksum")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Filename")
+                        .IsRequired()
+                        .HasMaxLength(1024)
+                        .HasColumnType("character varying(1024)");
+
+                    b.Property<Guid>("OrganisationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ProcessingError")
+                        .HasColumnType("text");
+
+                    b.Property<long>("Size")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("StorageKey")
+                        .IsRequired()
+                        .HasMaxLength(1024)
+                        .HasColumnType("character varying(1024)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OwnerId");
+
+                    b.HasIndex("OrganisationId", "Checksum")
+                        .IsUnique();
+
+                    b.ToTable("Files");
+                });
+
             modelBuilder.Entity("Domain.Models.Membership", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasColumnType("text");
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValueSql("uuidv7()");
 
                     b.Property<DateTime?>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("OrganizationId")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Role")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
                     b.HasIndex("OrganizationId");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("UserId", "OrganizationId")
+                        .IsUnique();
 
                     b.ToTable("Memberships");
                 });
 
             modelBuilder.Entity("Domain.Models.Organization", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasColumnType("text");
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValueSql("uuidv7()");
 
                     b.Property<DateTime?>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -75,28 +139,6 @@ namespace Persistence.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Organizations");
-                });
-
-            modelBuilder.Entity("Domain.Models.Position", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Description")
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("character varying(128)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Positions");
                 });
 
             modelBuilder.Entity("Domain.Models.Session", b =>
@@ -120,9 +162,8 @@ namespace Persistence.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
@@ -133,8 +174,10 @@ namespace Persistence.Migrations
 
             modelBuilder.Entity("Domain.Models.User", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasColumnType("text");
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValueSql("uuidv7()");
 
                     b.Property<DateTime?>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -153,16 +196,14 @@ namespace Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int>("PositionId")
-                        .HasColumnType("integer");
-
                     b.Property<string>("Role")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("PositionId");
+                    b.HasIndex("Email")
+                        .IsUnique();
 
                     b.ToTable("Users");
                 });
@@ -197,25 +238,9 @@ namespace Persistence.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Domain.Models.User", b =>
-                {
-                    b.HasOne("Domain.Models.Position", "Position")
-                        .WithMany("Users")
-                        .HasForeignKey("PositionId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Position");
-                });
-
             modelBuilder.Entity("Domain.Models.Organization", b =>
                 {
                     b.Navigation("Memberships");
-                });
-
-            modelBuilder.Entity("Domain.Models.Position", b =>
-                {
-                    b.Navigation("Users");
                 });
 
             modelBuilder.Entity("Domain.Models.User", b =>

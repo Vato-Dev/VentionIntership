@@ -1,4 +1,4 @@
-﻿namespace Persistence.Extensions
+﻿namespace Domain.Extensions
 {
     public static  class StringExtensions
     {
