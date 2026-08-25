@@ -1,4 +1,5 @@
 ﻿using Application.Abstractions;
+using Application.DTOs;
 using Domain.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
@@ -17,6 +18,7 @@ namespace Persistence.ServiceCollectionExtension
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped(typeof(IBaseRepository<,>), typeof(BaseRepository<,>));
             services.AddScoped<IMembershipRepository,MembershipRepository>();
+            services.AddScoped<IUserRepository,UserRepository>();
         }
         public static void ConfigurePersistenceOptions(this IServiceCollection services)
         {

@@ -112,5 +112,8 @@ namespace Persistence.Repositories
                 ? _context.Memberships.AnyAsync(m => m.UserId == userId && m.OrganizationId == orgId && EF.Functions.ILike(m.Role, role), cancellationToken) 
                 : _context.Memberships.AnyAsync(m => m.UserId == userId && m.OrganizationId == orgId, cancellationToken);
         }
+        public Task<bool> IsMemberAsync(Guid userId, Guid orgId, CancellationToken cancellationToken)
+         =>context.Memberships.AnyAsync(m => m.UserId == userId && m.OrganizationId == orgId, cancellationToken);
+        
     }
 }

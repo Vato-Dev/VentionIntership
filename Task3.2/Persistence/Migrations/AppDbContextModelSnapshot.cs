@@ -80,7 +80,7 @@ namespace Persistence.Migrations
                     b.HasIndex("OrganisationId", "Checksum")
                         .IsUnique();
 
-                    b.ToTable("Files");
+                    b.ToTable("Files", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Models.Membership", b =>
@@ -110,7 +110,7 @@ namespace Persistence.Migrations
                     b.HasIndex("UserId", "OrganizationId")
                         .IsUnique();
 
-                    b.ToTable("Memberships");
+                    b.ToTable("Memberships", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Models.Organization", b =>
@@ -138,7 +138,7 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Organizations");
+                    b.ToTable("Organizations", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Models.Session", b =>
@@ -169,7 +169,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Sessions");
+                    b.ToTable("Sessions", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Models.User", b =>
@@ -205,7 +205,7 @@ namespace Persistence.Migrations
                     b.HasIndex("Email")
                         .IsUnique();
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Models.Membership", b =>

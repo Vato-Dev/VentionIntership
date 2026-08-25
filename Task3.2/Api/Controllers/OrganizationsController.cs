@@ -1,11 +1,14 @@
 ﻿using Application.Abstractions;
 using Application.DTOs;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers
 {
+
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class OrganizationsController(IOrganizationService organizationService) : ControllerBase
     {
         [HttpGet("{id:guid}")]

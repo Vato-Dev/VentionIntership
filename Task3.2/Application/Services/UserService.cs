@@ -5,7 +5,10 @@ using Domain.Models;
 
 namespace Application.Services
 {
-    public sealed class UserService(IBaseRepository<User, Guid> userRepository, IUnitOfWork unitOfWork) : IUserService
+    public sealed class UserService(
+        IBaseRepository<User, Guid> userRepository,
+        IUnitOfWork unitOfWork,
+        IPasswordHasher passwordHasher) : IUserService
     {
         public async Task<UserResponseDto?> GetUserByIdAsync(Guid id, CancellationToken cancellationToken = default)
         {
@@ -37,10 +40,11 @@ namespace Application.Services
         {
             var user = new User
             {
-                Email = dto.Email,
+                Email = dto.Email.ToLower(), // that's ugly workaround i should create field for normalized email
                 Name = dto.Name,
-                Role = "User", 
-                PasswordHash = dto.Password, //TOdo hasher bcrypt
+                Role = "User",
+      
+                PasswordHash = passwordHasher.Hash(dto.Password),
                 CreatedAt = DateTime.UtcNow
             };
 
@@ -70,10 +74,10 @@ namespace Application.Services
 
                 user.Email = dto.Email;
                 user.Name = dto.Name;
-                
+
                 if (!string.IsNullOrWhiteSpace(dto.Password))
                 {
-                    user.PasswordHash = dto.Password; //todo:Hasher
+                    user.PasswordHash = passwordHasher.Hash(dto.Password);
                 }
 
                 userRepository.Update(user);

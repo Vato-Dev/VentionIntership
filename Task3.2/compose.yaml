@@ -1,11 +1,31 @@
 ﻿services:
+  gateway:
+    image: gateway
+    build:
+      context: .
+      dockerfile: ApiGateway/Dockerfile
+    container_name: api_gateway
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - JwtSettings__Issuer=${JWT_ISSUER}
+      - JwtSettings__Audience=${JWT_AUDIENCE}
+      - JwtSettings__Key=${JWT_KEY}
+      - GatewaySettings__SharedSecret=${YARP_GATEWAY_KEY}
+    depends_on:
+      - api
+  
   api:
     image: api
     build:
       context: .
       dockerfile: Api/Dockerfile
-    ports:
-      - "8080:8080"
+    # ports:
+    #  - "8080:8080"
     depends_on:
       - postgres
     env_file:
@@ -14,21 +34,22 @@
       - ASPNETCORE_ENVIRONMENT=Development
       - DB_HOST=postgres
       - REDIS_HOST=redis
-  
+      - GatewaySettings__SharedSecret=${YARP_GATEWAY_KEY}
+
   postgres:
-    image:  postgres:18-alpine
+    image: postgres:18-alpine
     container_name: vention_project_db
     environment:
-      POSTGRES_USER : ${DB_USER}
-      POSTGRES_PASSWORD : ${DB_PASSWORD}
-      POSTGRES_DB: ${DB_NAME} 
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
     ports:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql
-        
-  redis :  #without passwords for now and also i don't like the api enviroment configuration should check it after
-    image : redis:alpine
+  
+  redis: #without passwords for now and also i don't like the api enviroment configuration should check it after
+    image: redis:alpine
     container_name: redis
     restart: unless-stopped
     ports:
@@ -39,4 +60,3 @@ volumes:
   pgdata:
   redis-data:
     
-  

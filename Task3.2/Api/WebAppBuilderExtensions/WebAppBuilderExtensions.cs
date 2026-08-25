@@ -16,6 +16,8 @@ namespace Api.WebAppBuilderExtensions
         public static void AddInfrastructure(this WebApplicationBuilder builder)
         {
             builder.Services
+                .AddPasswordHasher()
+                .AddJtwConfiguration()
                 .AddRedisConfiguration()
                 .AddFileSizeConfiguration()
                 .AddFileUploadServices();

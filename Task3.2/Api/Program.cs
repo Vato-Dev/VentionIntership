@@ -4,8 +4,10 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Api.ExceptionHandlers;
 using Api.Filters;
+using Api.Middlewares;
 using Api.WebAppBuilderExtensions;
 using Application.SericeCollectionExtension;
+using Domain.Extensions;
 //using Application.SericeCollectionExtension;
 //using Application.Validators;
 using dotenv.net;
@@ -67,14 +69,27 @@ builder.Services.AddExceptionHandler<NotFoundExceptionHandler>();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 //builder.Services.AddValidatorsFromAssemblyContaining<UserCreateDtoValidator>();
 
+
+
+builder.Services.AddAuthentication("GatewayTrust")
+    .AddScheme<GatewayTrustOptions, GatewayTrustHandler>("GatewayTrust", options =>
+    {
+        options.SharedSecret = "YARP_GATEWAY_KEY".FromEnvRequired();
+    });
+
+builder.Services.AddAuthorization();
+builder.Services.AddHealthChecks();
+
+
 var app = builder.Build();
+app.UseExceptionHandler();
+app.UseMiddleware<GatewayTrustMiddleware>();
 
 using (var scope = app.Services.CreateScope())
 {
     var logger =  scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
      await scope.ServiceProvider.RunMigrationsAndSeed(logger);
 }
-app.UseExceptionHandler();
 
 
 // Configure the HTTP request pipeline.
@@ -85,6 +100,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseRouting();
+app.UseAuthorization();
+app.MapHealthChecks("/api/health"); //todo: make advanced health checks
 
 app.MapControllers();
 app.Run();
