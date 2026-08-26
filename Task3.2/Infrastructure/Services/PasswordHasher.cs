@@ -12,7 +12,7 @@ namespace Infrastructure.Services
 
         public PasswordHasher()
         {
-            var pepper = "Pepper".FromEnvRequired(); //it will cache it in memory
+            var pepper = "PEPPER".FromEnvRequired(); //it will cache it in memory
             _pepperBytes = Encoding.UTF8.GetBytes(pepper);
         }
 
