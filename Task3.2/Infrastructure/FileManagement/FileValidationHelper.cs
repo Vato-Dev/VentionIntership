@@ -161,7 +161,7 @@ public sealed class FileValidationHelper
         }
         catch (Exception)
         {
-            return new FileUploadResult(500, "Something went wrong");
+            return new FileUploadResult(413, "Something went wrong"); //maybe 409 status code could be better
         }
         finally
         {

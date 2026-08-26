@@ -62,7 +62,7 @@ public sealed class FileUploadService(FileValidationHelper fileValidationHelper,
             {
                 return (200, MapToDto(existing), null);
             }
-            return (500, null, "Upload conflict could not be resolved");
+            return (409, null, "Upload conflict could not be resolved");
         }
         
         return (201, MapToDto(entity), null);
