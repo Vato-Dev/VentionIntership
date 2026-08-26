@@ -1,134 +1,55 @@
 ﻿using Application.Abstractions;
 using Application.DTOs;
-using Domain.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers
 {
-    [ApiController]
+       [ApiController]
     [Route("api/[controller]")]
-    public sealed class UsersController(IUserService userService) : ControllerBase//Fat controller is not best practice and validation/exceptions hadling should be implemented better, but we are practicing other things now.
+    [Authorize]
+    public class UsersController(IUserService userService) : ControllerBase
     {
-        [HttpGet]
-        public async Task<IActionResult> GetAll(
-            CancellationToken cancellationToken,
-            [FromQuery] int? keySetId = null, 
-            [FromQuery] int? page = 1, 
-            [FromQuery] int? pageSize = 10)
-        {
-            var pagedUsers = await userService.GetAllUsersAsync(keySetId, page, pageSize, cancellationToken);
-            
-            var response = new PagedResponse<UserResponseDto>
-            {
-                Data = pagedUsers.Data.Select(u => new UserResponseDto
-                {
-                    Id = u.Id,
-                    Username = u.Username,
-                    Email = u.Email,
-                    PositionId = u.PositionId,
-                    OrganizationId = u.OrganizationId,
-                    CreatedAt = u.CreatedAt
-                }).ToList(),
-                PageNumber = pagedUsers.PageNumber,
-                PageSize = pagedUsers.PageSize,
-                TotalItems = pagedUsers.TotalItems,
-                TotalPages = pagedUsers.TotalPages,
-                LastSeenId = pagedUsers.LastSeenId
-            };
-
-            return Ok(response);
-        }
-
-        [HttpGet("{id:int}")]
-        public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken)
+        [HttpGet("{id:guid}")]
+        public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken)
         {
             var user = await userService.GetUserByIdAsync(id, cancellationToken);
-            if (user == null) return NotFound($"User with ID {id} not found.");
-
-            var response = new UserResponseDto
-            {
-                Id = user.Id,
-                Username = user.Username,
-                Email = user.Email,
-                PositionId = user.PositionId,
-                OrganizationId = user.OrganizationId,
-                CreatedAt = user.CreatedAt
-            };
-            return Ok(response);
+            if (user == null) return NotFound();
+            return Ok(user);
         }
-
+ 
+        [HttpGet]
+        public async Task<IActionResult> GetAll(
+            [FromQuery] Guid? keySetId,
+            [FromQuery] int? page = 1,
+            [FromQuery] int? pageSize = 10,
+            CancellationToken cancellationToken = default)
+        {
+            var result = await userService.GetAllUsersAsync(keySetId, page, pageSize, cancellationToken);
+            return Ok(result);
+        }
+ 
+     
         [HttpPost]
+        [AllowAnonymous]// to self register ,but if it's inner service of corp. should be autorized for sure
         public async Task<IActionResult> Create([FromBody] UserCreateDto dto, CancellationToken cancellationToken)
         {
-            var user = new User
-            {
-                Username = dto.Username, 
-                Email = dto.Email, 
-                PositionId = dto.PositionId, 
-                OrganizationId = dto.OrganizationId
-            };
-
-            try
-            {
-                await userService.CreateUserAsync(user, cancellationToken);
-
-                var response = new UserResponseDto
-                {
-                    Id = user.Id,
-                    Username = user.Username,
-                    Email = user.Email,
-                    PositionId = user.PositionId,
-                    OrganizationId = user.OrganizationId,
-                    CreatedAt = user.CreatedAt
-                };
-
-                return CreatedAtAction(nameof(GetById), new { id = response.Id }, response);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
-            }
+            var createdUser = await userService.CreateUserAsync(dto, cancellationToken);
+            return CreatedAtAction(nameof(GetById), new { id = createdUser.Id }, createdUser);
         }
-
-        [HttpPut("{id:int}")]
-        public async Task<IActionResult> Update(int id, [FromBody] UserUpdateDto dto, CancellationToken cancellationToken)
+ 
+        [HttpPut("{id:guid}")]
+        public async Task<IActionResult> Update(Guid id, [FromBody] UserUpdateDto dto, CancellationToken cancellationToken)
         {
-            if (id != dto.Id) return BadRequest("Mismatched User ID.");
-
-            var existingUser = await userService.GetUserByIdAsync(id, cancellationToken);
-            if (existingUser == null) return NotFound($"User with ID {id} not found.");
-
-            existingUser.Username = dto.Username;
-            existingUser.Email = dto.Email;
-            existingUser.PositionId = dto.PositionId;
-            existingUser.OrganizationId = dto.OrganizationId;
-
-            try
-            {
-                await userService.UpdateUserAsync(existingUser, cancellationToken);
-                return NoContent();
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
-            }
+            await userService.UpdateUserAsync(id, dto, cancellationToken);
+            return NoContent();
         }
-
-        [HttpDelete("{id:int}")]
-        public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
+ 
+      /*  [HttpDelete("{id:guid}")]
+        public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
         {
-            try
-            {
-                var user = await userService.GetUserByIdAsync(id, cancellationToken);
-                if (user == null) return NotFound($"User with ID {id} not found.");
-
-                await userService.DeleteUserAsync(id, cancellationToken);
-                return NoContent();
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
-            }
-        }
+            await userService.DeleteUserAsync(id, cancellationToken);
+            return NoContent();
+        }*/ // since i don't have soft delete i won't use it for now
     }
 }

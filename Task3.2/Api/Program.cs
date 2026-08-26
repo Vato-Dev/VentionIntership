@@ -1,17 +1,35 @@
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Api.ExceptionHandlers;
 using Api.Filters;
 using Api.Middlewares;
 using Api.WebAppBuilderExtensions;
 using Application.SericeCollectionExtension;
-using Application.Validators;
+using Domain.Extensions;
+//using Application.SericeCollectionExtension;
+//using Application.Validators;
+using dotenv.net;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Persistence;
+using Persistence.PersistenceOptions;
 using Persistence.ServiceCollectionExtension;
 
 var builder = WebApplication.CreateBuilder(args);
+
+//todo : remove all regions and refactor Code to get rid of them
+#region EnvConfiguration
+DotEnv.Fluent()
+    .WithOverwriteExistingVars()
+    .WithTrimValues()
+    .WithProbeForEnv()
+    .Load();
+
+#endregion
 
 builder.Services.AddControllers(options =>
 {
@@ -30,33 +48,50 @@ builder.WebHost.ConfigureKestrel(options =>
 });
 //builder.Services.AddFluentValidationAutoValidation(); //todo make an action filter 
 builder.Services.AddPersistence();
+builder.AddInfrastructure();
+builder.Services.ConfigurePersistenceOptions();
+
 builder.Services.AddApplication();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
+
+builder.Services.AddDbContext<AppDbContext>((serviceProvider, options) =>
+{
+    var dbOptions = serviceProvider.GetRequiredService<IOptions<DatabaseOptions>>().Value; //todo build conn string from env part by part
+    
+    options.UseNpgsql(dbOptions.BuildConnectionString());
+});
+
 builder.Services.AddMemoryCache();
 builder.ConfigureProblemDetails();
 builder.Services.AddExceptionHandler<ValidationExceptionHandler>();
 builder.Services.AddExceptionHandler<NotFoundExceptionHandler>();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
-builder.Services.AddValidatorsFromAssemblyContaining<UserCreateDtoValidator>();
+//builder.Services.AddValidatorsFromAssemblyContaining<UserCreateDtoValidator>();
+
+
+
+builder.Services.AddAuthentication("GatewayTrust")
+    .AddScheme<GatewayTrustOptions, GatewayTrustHandler>("GatewayTrust", options =>
+    {
+        options.SharedSecret = "YARP_GATEWAY_KEY".FromEnvRequired();
+    });
+
+builder.Services.AddAuthorization();
+builder.Services.AddHealthChecks();
+
 
 var app = builder.Build();
 app.UseExceptionHandler();
+app.UseMiddleware<GatewayTrustMiddleware>();
+
 using (var scope = app.Services.CreateScope())
 {
-    var services = scope.ServiceProvider;
-    try
-    {
-        var context = services.GetRequiredService<AppDbContext>();
-        DatabaseSeeder.SeedData(context);
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"An error occurred while seeding the database: {ex.Message}"); //log in console since i had error and it helped to define it
-    }
+    var logger =  scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+     await scope.ServiceProvider.RunMigrationsAndSeed(logger);
 }
+
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -65,6 +100,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseRouting();
+app.UseAuthorization();
+app.MapHealthChecks("/api/health"); //todo: make advanced health checks
 
 app.MapControllers();
 app.Run();

@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Api.Middlewares
+namespace Api.ExceptionHandlers
 {
     public class NotFoundExceptionHandler(IProblemDetailsService problemDetailsService) : IExceptionHandler // it's more likely part of globalexception overkill to make it separate handler
     {

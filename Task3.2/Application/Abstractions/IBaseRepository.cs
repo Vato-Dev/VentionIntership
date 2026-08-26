@@ -1,16 +1,19 @@
 ﻿
 using System.Data;
 using Application.DTOs;
+using Domain.Models;
 
 namespace Application.Abstractions
 {
-    public interface IBaseRepository<TModel> where TModel : class
+    public interface IBaseRepository<T, TKey> 
+        where T : DomainEntity<TKey>
+        where TKey : struct,IComparable<TKey>
     {
-        Task<TModel?> GetByIdAsync(int id, CancellationToken cancellationToken);
-        Task<PagedResponse<TModel>> GetAllAsync(CancellationToken cancellationToken,int? keySetId = null, int? page = 1, int? pageSize = 10 );
-        Task AddAsync(TModel entity, CancellationToken cancellationToken);
-        void Update(TModel entity);
-        void Delete(TModel entity);
+        Task<T?> GetByIdAsync(TKey id, CancellationToken cancellationToken);
+        Task<PagedResponse<T, TKey>> GetAllAsync(CancellationToken cancellationToken, TKey? keySetId = default, int? page = 1, int? pageSize = 10);
+        Task AddAsync(T entity, CancellationToken cancellationToken);
+        void Update(T entity);
+        void Delete(T entity);
     }
     public interface IUnitOfWork 
     {

@@ -10,8 +10,8 @@ namespace Application.SericeCollectionExtension
         {
             services.AddScoped<IUserService, UserService>()
                 .AddScoped<IOrganizationService, OrganizationService>()
-                .AddScoped<IPositionService, PositionService>()
-                .AddScoped<ISessionService, SessionService>();
+                .AddScoped<ISessionService, SessionService>()
+                .AddScoped<IMembershipService, MembershipService>();
         }
     }
 }

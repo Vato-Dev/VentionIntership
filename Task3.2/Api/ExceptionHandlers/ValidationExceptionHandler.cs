@@ -1,7 +1,7 @@
 ﻿using FluentValidation;
 using Microsoft.AspNetCore.Diagnostics;
 
-namespace Api.Middlewares
+namespace Api.ExceptionHandlers
 {
     public sealed class ValidationExceptionHandler(IProblemDetailsService problemDetailsService) : IExceptionHandler
     {

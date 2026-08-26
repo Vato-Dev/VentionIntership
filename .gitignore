@@ -63,9 +63,13 @@ packages/
 *.dtbcache.v2
 *.futdcache.v2
 
-# Игнорировать файлы окружения во всех папках
+# Ignore all .env files
 **/.env
 **/.env.*
+
+# allow example
+!**/.env.example
+
 # Visual Studio
 .vs/
 # Visual Studio Code
@@ -83,7 +87,7 @@ logs/
 *.log
 
 # Docker
-**/.dockerignore
+#**/.dockerignore
 
 # Publish output (optional)
 **/publish/

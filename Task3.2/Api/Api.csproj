@@ -4,11 +4,12 @@
         <TargetFramework>net8.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
+        <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="dotenv.net" Version="4.0.2" />
         <PackageReference Include="FluentValidation.AspNetCore" Version="11.3.1" />
-        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.23"/>
         <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.28">
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -18,7 +19,14 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\Infrastructure\Infrastructure.csproj" />
       <ProjectReference Include="..\Persistence\Persistence.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Content Include="..\.dockerignore">
+        <Link>.dockerignore</Link>
+      </Content>
     </ItemGroup>
 
 </Project>
