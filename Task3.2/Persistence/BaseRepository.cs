@@ -10,7 +10,7 @@ namespace Persistence
         where TKey : struct, IComparable<TKey>
     {
         
-        protected DbSet<T> DbSet = null!;
+        protected readonly DbSet<T> DbSet = context.Set<T>(); 
         public async Task<T?> GetByIdAsync(TKey id, CancellationToken cancellationToken)
         {
             return await context.Set<T>().FindAsync([id], cancellationToken);

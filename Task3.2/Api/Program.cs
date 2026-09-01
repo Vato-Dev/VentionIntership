@@ -35,7 +35,7 @@ builder.Services.AddControllers(options =>
 {
     options.Filters.Add<ValidationFilter>();
 }).AddJsonOptions(options => {
-    options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower;
+   // options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower;
     options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
     options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
     options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
@@ -57,7 +57,7 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddDbContext<AppDbContext>((serviceProvider, options) =>
 {
-    var dbOptions = serviceProvider.GetRequiredService<IOptions<DatabaseOptions>>().Value; //todo build conn string from env part by part
+    var dbOptions = serviceProvider.GetRequiredService<IOptions<DatabaseOptions>>().Value; 
     
     options.UseNpgsql(dbOptions.BuildConnectionString());
 });

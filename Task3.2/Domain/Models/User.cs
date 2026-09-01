@@ -7,7 +7,7 @@ namespace Domain.Models
     {
         public string Name { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
-        public string Role { get; set; } = "User"; 
+        public string Role { get; set; } = "MEMBER"; 
         public string PasswordHash { get; set; } = string.Empty;
         
         public ICollection<Session> Sessions { get; set; } = new List<Session>();

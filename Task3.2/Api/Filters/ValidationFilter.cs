@@ -21,8 +21,7 @@ namespace Api.Filters
 
                     if (!validationResult.IsValid)
                     {
-                        // Бросаем исключение! Теперь его 100% поймает ваш ValidationExceptionHandler
-                        throw new FluentValidation.ValidationException(validationResult.Errors);
+                        throw new ValidationException(validationResult.Errors);
                     }
                 }
             }

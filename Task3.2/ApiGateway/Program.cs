@@ -16,7 +16,16 @@ DotEnv.Fluent()
 var base64Key = "JWT_KEY".FromEnvRequired();
 
 var securityKeyBytes = Convert.FromBase64String(base64Key);
-
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("GatewayCorsPolicy", policy =>
+    {
+        policy.WithOrigins("http://localhost:3000")
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials(); 
+    });
+});
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -71,6 +80,7 @@ builder.Services.AddReverseProxy()
 var app = builder.Build();
 
 app.UseRouting();
+app.UseCors("GatewayCorsPolicy");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapReverseProxy();

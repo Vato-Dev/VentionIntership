@@ -7,7 +7,10 @@ using Microsoft.Extensions.Caching.Distributed;
 
 namespace Infrastructure.FileManagement;
 
-public sealed class FileUploadService(FileValidationHelper fileValidationHelper, IFileRepository fileRepository, IDistributedCache cache)
+public sealed class FileUploadService(
+    FileValidationHelper fileValidationHelper, 
+    IFileRepository fileRepository, 
+    IDistributedCache cache) : IFileUploadService
 {
     public async Task<(int StatusCode, FileResponseDto? File, string? Error)> HandleUploadAsync(
         HttpRequest request,
@@ -22,7 +25,6 @@ public sealed class FileUploadService(FileValidationHelper fileValidationHelper,
             return (uploadResult.StatusCode, null, uploadResult.Error ?? uploadResult.StatusDescription);
         }
 
-
         if (uploadResult.IsDuplicate && uploadResult.Checksum != null)
         {
             var existing = await fileRepository.GetByHashAsync(uploadResult.Checksum, organisationId, ct);
@@ -30,7 +32,6 @@ public sealed class FileUploadService(FileValidationHelper fileValidationHelper,
             {
                 return (200, MapToDto(existing), null); 
             }
-
         }
 
         var now = DateTime.UtcNow;
@@ -68,20 +69,79 @@ public sealed class FileUploadService(FileValidationHelper fileValidationHelper,
         return (201, MapToDto(entity), null);
     }
 
+    public async Task<PagedResponse<FileResponseDto, Guid>> GetFilesByOrganizationAsync(
+        Guid organisationId, 
+        int page, 
+        int pageSize, 
+        CancellationToken ct)
+    {
+        var pagedFiles = await fileRepository.GetByOrganizationIdAsync(organisationId, page, pageSize, ct);
+
+        var dtoData = pagedFiles.Data.Select(MapToDto).ToList();
+
+        return new PagedResponse<FileResponseDto, Guid>
+        {
+            Data = dtoData,
+            PageNumber = pagedFiles.PageNumber,
+            PageSize = pagedFiles.PageSize,
+            TotalItems = pagedFiles.TotalItems,
+            TotalPages = pagedFiles.TotalPages
+        };
+    }
+
+    public async Task<(int StatusCode, string? Error)> DeleteFileAsync(
+        Guid id, 
+        Guid organisationId, 
+        CancellationToken ct)
+    {
+        var file = await fileRepository.GetByIdAsync(id, ct);
+        if (file == null)
+            return (404, "File not found");
+
+        if (file.OrganisationId != organisationId)
+            return (403, "File does not belong to this organisation");
+
+        await fileRepository.DeleteAsync(file, ct);
+        return (204, null); 
+    }
+
+    public async Task<(int StatusCode, string? Message, string? Error)> ReprocessFileAsync(
+        Guid id, 
+        Guid organisationId, 
+        CancellationToken ct)
+    {
+        var file = await fileRepository.GetByIdAsync(id, ct);
+        if (file == null)
+            return (404, null, "File not found");
+
+        if (file.OrganisationId != organisationId)
+            return (403, null, "File does not belong to this organisation");
+
+        file.Status = FileStatus.Processing;
+        file.ProcessingError = null;
+        file.UpdatedAt = DateTime.UtcNow;
+
+        // TODO: when i'll add rabbit do smth like this
+        // await _publishEndpoint.Publish(new FileReprocessCommand(file.Id));
+
+        return (200, "File reprocessing has been queued successfully", null);
+    }
+
     private static FileResponseDto MapToDto(FileModel entity) => new(
-    entity.Id,
-    entity.Filename,
-    entity.Size,
-    entity.Status.ToString().ToLowerInvariant(),
-    entity.ContentType,
-    entity.Checksum,
-    entity.StorageKey,
-    entity.OrganisationId,
-    entity.OwnerId,
-    entity.Application,
-    entity.ProcessingError,
-    entity.CreatedAt,
-    entity.UpdatedAt);
+        entity.Id,
+        entity.Filename,
+        entity.Size,
+        entity.Status.ToString().ToLowerInvariant(),
+        entity.ContentType,
+        entity.Checksum,
+        entity.StorageKey,
+        entity.OrganisationId,
+        entity.OwnerId,
+        entity.Application,
+        entity.ProcessingError,
+        entity.CreatedAt,
+        entity.UpdatedAt);
+}
 
     public sealed class DuplicateFileException(string checksum, Guid organisationId, Exception inner)
         : Exception($"A file with checksum {checksum} already exists for organisation {organisationId}", inner)
@@ -89,4 +149,3 @@ public sealed class FileUploadService(FileValidationHelper fileValidationHelper,
         public string Checksum { get; } = checksum;
         public Guid OrganisationId { get; } = organisationId;
     }
-}
