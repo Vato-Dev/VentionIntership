@@ -35,7 +35,7 @@ namespace Infrastructure.ServiceCollectionExtension
    
             services.AddScoped<FileValidationHelper>();
             services.AddScoped<IFileRepository, FileRepository>();
-            services.AddScoped<FileUploadService>();
+            services.AddScoped<IFileUploadService,FileUploadService>();
             return services;
         }
         public static IServiceCollection AddJtwConfiguration(this IServiceCollection services)

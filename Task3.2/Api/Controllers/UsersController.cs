@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers
 {
-       [ApiController]
+    [ApiController]
     [Route("api/[controller]")]
     [Authorize]
     public class UsersController(IUserService userService) : ControllerBase
@@ -29,27 +29,21 @@ namespace Api.Controllers
             return Ok(result);
         }
  
-     
-        [HttpPost]
-        [AllowAnonymous]// to self register ,but if it's inner service of corp. should be autorized for sure
-        public async Task<IActionResult> Create([FromBody] UserCreateDto dto, CancellationToken cancellationToken)
-        {
-            var createdUser = await userService.CreateUserAsync(dto, cancellationToken);
-            return CreatedAtAction(nameof(GetById), new { id = createdUser.Id }, createdUser);
-        }
- 
         [HttpPut("{id:guid}")]
         public async Task<IActionResult> Update(Guid id, [FromBody] UserUpdateDto dto, CancellationToken cancellationToken)
         {
-            await userService.UpdateUserAsync(id, dto, cancellationToken);
-            return NoContent();
+            await userService.UpdateUserAsync(id, dto, cancellationToken); 
+            var updated = await userService.GetUserByIdAsync(id, cancellationToken);
+            if (updated == null) return NotFound();
+            return Ok(updated);
         }
- 
-      /*  [HttpDelete("{id:guid}")]
-        public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
-        {
-            await userService.DeleteUserAsync(id, cancellationToken);
-            return NoContent();
-        }*/ // since i don't have soft delete i won't use it for now
+
+        /*  [HttpDelete("{id:guid}")]
+          public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
+          {
+              await userService.DeleteUserAsync(id, cancellationToken);
+              return NoContent();
+          }*/ // left as-is per your own note - cascade behavior on Membership/Files/Sessions
+        // needs a decision before this goes live
     }
 }
