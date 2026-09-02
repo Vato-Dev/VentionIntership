@@ -20,7 +20,8 @@ namespace Api.WebAppBuilderExtensions
                 .AddJtwConfiguration()
                 .AddRedisConfiguration()
                 .AddFileSizeConfiguration()
-                .AddFileUploadServices();
+                .AddFileUploadServices()
+                .AddMessageBus();
         }
     }
 }

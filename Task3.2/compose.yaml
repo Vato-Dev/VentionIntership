@@ -28,6 +28,7 @@
     #  - "8080:8080"
     depends_on:
       - postgres
+      - rabbitmq
     env_file:
       - .env
     container_name: api
@@ -36,7 +37,10 @@
       - DB_HOST=postgres
       - REDIS_HOST=redis
       - GatewaySettings__SharedSecret=${YARP_GATEWAY_KEY}
-
+      - RABBITMQ_HOST=rabbitmq
+    volumes:
+     - ./uploads:/app/uploads
+     
   postgres:
     image: postgres:18-alpine
     container_name: vention_project_db
@@ -57,7 +61,20 @@
       - "6379:6379"
     volumes:
       - redis-data:/data
+    
+  rabbitmq:
+      image: rabbitmq:3-management-alpine
+      container_name: rabbitmq
+      restart: unless-stopped
+      ports:
+        - "5672:5672"     
+        - "15672:15672"   
+      environment:
+        RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME:-guest}
+        RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-guest}
+      volumes:
+        - rabbitmq-data:/var/lib/rabbitmq
 volumes:
   pgdata:
   redis-data:
-    
+  rabbitmq-data:

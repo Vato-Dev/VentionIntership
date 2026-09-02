@@ -41,7 +41,9 @@ namespace Api.Controllers
         public async Task<IActionResult> Update(Guid id, [FromBody] OrganizationUpdateDto dto, CancellationToken cancellationToken)
         {
             await organizationService.UpdateOrganizationAsync(id, dto, cancellationToken);
-            return NoContent();
+            var updated = await organizationService.GetOrganizationByIdAsync(id, cancellationToken);
+            if (updated == null) return NotFound();
+            return Ok(updated);
         }
 
         [HttpDelete("{id:guid}")]
