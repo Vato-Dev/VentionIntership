@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Api.ExceptionHandlers;
 using Api.Filters;
+using Api.Hubs;
 using Api.Middlewares;
 using Api.WebAppBuilderExtensions;
 using Application.SericeCollectionExtension;
@@ -77,13 +78,14 @@ builder.Services.AddAuthentication("GatewayTrust")
         options.SharedSecret = "YARP_GATEWAY_KEY".FromEnvRequired();
     });
 
+builder.Services.AddSignalR();
 builder.Services.AddAuthorization();
 builder.Services.AddHealthChecks();
 
 
 var app = builder.Build();
 app.UseExceptionHandler();
-app.UseMiddleware<GatewayTrustMiddleware>();
+//app.UseMiddleware<GatewayTrustMiddleware>(); i think i found issue i'm deleting there header and after handler can't find it and returns 401
 
 using (var scope = app.Services.CreateScope())
 {
@@ -101,9 +103,10 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseRouting();
+app.UseAuthentication();
 app.UseAuthorization();
-app.MapHealthChecks("/api/health"); //todo: make advanced health checks
+app.MapHealthChecks("/api/health"); 
+app.MapHub<FileStatusHub>("/hubs/files");
 
 app.MapControllers();
 app.Run();
-//todo: delete real creds from appsettings

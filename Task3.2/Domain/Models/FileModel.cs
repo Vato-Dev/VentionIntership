@@ -18,8 +18,8 @@
     public enum FileStatus
     {
         Processing,
-        Processed,
-        Error
+        Ready,
+        Failed
     }
 
 }

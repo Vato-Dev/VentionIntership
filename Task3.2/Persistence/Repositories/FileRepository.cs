@@ -43,7 +43,11 @@ namespace Persistence.Repositories
 
         public Task<FileModel?> GetByIdAsync(Guid id, CancellationToken ct = default) =>
             context.Files.SingleOrDefaultAsync(f => f.Id == id, ct);
-
+        public async Task UpdateAsync(FileModel file, CancellationToken ct = default) 
+        {
+            context.Files.Update(file);
+            await context.SaveChangesAsync(ct);
+        }
         public async Task DeleteAsync(FileModel file, CancellationToken ct = default)
         {
             context.Files.Remove(file);
