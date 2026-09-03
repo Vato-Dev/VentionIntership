@@ -1,17 +1,16 @@
 ﻿using Application.Abstractions;
-using Application.Messages;
+using Application.DTOs;
 using Domain.Models;
 using MassTransit;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Logging;
 
 namespace Infrastructure.FileManagement;
 
 public sealed class FileProcessingConsumer(
     IFileRepository fileRepository,
+    IFileStatusNotifier notifier,
     ILogger<FileProcessingConsumer> logger) : IConsumer<FileProcessingRequested>
 {
-    
     private readonly string _uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "uploads");
 
     public async Task Consume(ConsumeContext<FileProcessingRequested> context)
@@ -55,6 +54,7 @@ public sealed class FileProcessingConsumer(
             file.ProcessingError = null;
             file.UpdatedAt = DateTime.UtcNow;
             await fileRepository.UpdateAsync(file, ct);
+            await NotifyStatusAsync(file, ct);
 
             var fullPath = Path.Combine(_uploadPath, msg.StorageKey);
 
@@ -63,14 +63,14 @@ public sealed class FileProcessingConsumer(
                 throw new FileNotFoundException($"Physical file not found: {fullPath}");
             }
 
-            // Simulate real processing (replace later with OCR / parsing / indexing)
+            // Simulate real processing 
             await Task.Delay(1500, ct);
-            
 
             file.Status = FileStatus.Ready;
             file.ProcessingError = null;
             file.UpdatedAt = DateTime.UtcNow;
             await fileRepository.UpdateAsync(file, ct);
+            await NotifyStatusAsync(file, ct);
 
             logger.LogInformation("File processed successfully → Ready");
         }
@@ -82,9 +82,15 @@ public sealed class FileProcessingConsumer(
             file.ProcessingError = ex.Message;
             file.UpdatedAt = DateTime.UtcNow;
             await fileRepository.UpdateAsync(file, ct);
+            await NotifyStatusAsync(file, ct);
+            await notifier.NotifyAsync(file.OrganisationId, "Processing failed", $"{file.Filename} could not be processed.", ct);
 
             // Rethrow => MassTransit retry / DLQ will handle it
             throw;
         }
     }
+
+    private Task NotifyStatusAsync(FileModel file, CancellationToken ct) =>
+        notifier.NotifyStatusChangedAsync(
+            file.OrganisationId, file.Id, file.Status.ToString().ToLowerInvariant(), file.ProcessingError, file.UpdatedAt, ct);
 }

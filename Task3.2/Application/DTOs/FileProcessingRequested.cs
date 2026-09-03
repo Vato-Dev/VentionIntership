@@ -1,4 +1,4 @@
-﻿namespace Application.Messages;
+﻿namespace Application.DTOs;
 
 public sealed record FileProcessingRequested
 {

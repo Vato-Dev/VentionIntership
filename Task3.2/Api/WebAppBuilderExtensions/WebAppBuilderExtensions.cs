@@ -1,4 +1,6 @@
-﻿using Infrastructure.ServiceCollectionExtension;
+﻿using Api.Hubs;
+using Application.Abstractions;
+using Infrastructure.ServiceCollectionExtension;
 
 namespace Api.WebAppBuilderExtensions
 {
@@ -15,6 +17,7 @@ namespace Api.WebAppBuilderExtensions
 
         public static void AddInfrastructure(this WebApplicationBuilder builder)
         {
+            builder.Services.AddScoped<IFileStatusNotifier, SignalRFileStatusNotifier>();
             builder.Services
                 .AddPasswordHasher()
                 .AddJtwConfiguration()
