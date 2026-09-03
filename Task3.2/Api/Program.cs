@@ -70,7 +70,7 @@ builder.Services.AddExceptionHandler<NotFoundExceptionHandler>();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 //builder.Services.AddValidatorsFromAssemblyContaining<UserCreateDtoValidator>();
 
-
+builder.AddSerilog();
 
 builder.Services.AddAuthentication("GatewayTrust")
     .AddScheme<GatewayTrustOptions, GatewayTrustHandler>("GatewayTrust", options =>
@@ -85,7 +85,7 @@ builder.Services.AddHealthChecks();
 
 var app = builder.Build();
 app.UseExceptionHandler();
-//app.UseMiddleware<GatewayTrustMiddleware>(); i think i found issue i'm deleting there header and after handler can't find it and returns 401
+//app.UseMiddleware<GatewayTrustMiddleware>(); //i think i found issue i'm deleting there header and after handler can't find it and returns 401
 
 using (var scope = app.Services.CreateScope())
 {

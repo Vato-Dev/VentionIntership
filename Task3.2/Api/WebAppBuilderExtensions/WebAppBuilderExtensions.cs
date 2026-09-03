@@ -1,6 +1,7 @@
 ﻿using Api.Hubs;
 using Application.Abstractions;
 using Infrastructure.ServiceCollectionExtension;
+using Serilog;
 
 namespace Api.WebAppBuilderExtensions
 {
@@ -25,6 +26,17 @@ namespace Api.WebAppBuilderExtensions
                 .AddFileSizeConfiguration()
                 .AddFileUploadServices()
                 .AddMessageBus();
+        }
+        
+        public static WebApplicationBuilder AddSerilog(this WebApplicationBuilder builder)
+        {
+            Log.Logger = new LoggerConfiguration()
+                .ReadFrom
+                .Configuration(builder.Configuration)
+                .CreateLogger();
+
+            builder.Host.UseSerilog();
+            return builder;
         }
     }
 }

@@ -28,17 +28,29 @@ public sealed class FileProcessingConsumer(
             "Received FileProcessingRequested. File={Filename}, StorageKey={StorageKey}",
             msg.Filename, msg.StorageKey);
 
+        logger.LogInformation(" UploadPath: {UploadPath}", _uploadPath);
+        var fullPath = Path.Combine(_uploadPath, msg.StorageKey);
+        logger.LogInformation(" FullPath: {FullPath}", fullPath);
+        logger.LogInformation("Directory exists: {Exists}", Directory.Exists(_uploadPath));
+
+        if (Directory.Exists(_uploadPath))
+        {
+            var files = Directory.GetFiles(_uploadPath);
+            logger.LogInformation("Files in directory ({Count}): {Files}", 
+                files.Length, string.Join(", ", files.Select(Path.GetFileName)));
+        }
+
         var file = await fileRepository.GetByIdAsync(msg.FileId, ct);
 
         if (file is null)
         {
-            logger.LogWarning("File not found. Acknowledging message.");
+            logger.LogWarning(" File not found in database. Acknowledging message.");
             return;
         }
 
         if (file.OrganisationId != msg.OrganisationId)
         {
-            logger.LogWarning("Organisation mismatch. Acknowledging.");
+            logger.LogWarning(" Organisation mismatch. Acknowledging.");
             return;
         }
 
@@ -55,14 +67,25 @@ public sealed class FileProcessingConsumer(
             file.UpdatedAt = DateTime.UtcNow;
             await fileRepository.UpdateAsync(file, ct);
             await NotifyStatusAsync(file, ct);
+            logger.LogInformation(" Status updated to Processing");
 
-            var fullPath = Path.Combine(_uploadPath, msg.StorageKey);
-
+            logger.LogInformation(" Checking if file exists: {FullPath}", fullPath);
+            
             if (!File.Exists(fullPath))
             {
-                throw new FileNotFoundException($"Physical file not found: {fullPath}");
+                logger.LogError(" File not found: {FullPath}", fullPath);
+                file.Status = FileStatus.Failed;
+                file.ProcessingError = $"File not found: {msg.StorageKey}";
+                file.UpdatedAt = DateTime.UtcNow;
+                await fileRepository.UpdateAsync(file, ct);
+                await NotifyStatusAsync(file, ct);
+                await notifier.NotifyAsync(file.OrganisationId, "Processing failed", $"{file.Filename} could not be found on server.", ct);
+                logger.LogError(" File marked as Failed");
+                return; 
             }
 
+            logger.LogInformation(" File found, processing...");
+            
             // Simulate real processing 
             await Task.Delay(1500, ct);
 
@@ -71,6 +94,7 @@ public sealed class FileProcessingConsumer(
             file.UpdatedAt = DateTime.UtcNow;
             await fileRepository.UpdateAsync(file, ct);
             await NotifyStatusAsync(file, ct);
+            await notifier.NotifyAsync(file.OrganisationId, "Processing complete", $"{file.Filename} has been processed successfully.", ct);
 
             logger.LogInformation("File processed successfully → Ready");
         }
@@ -85,7 +109,6 @@ public sealed class FileProcessingConsumer(
             await NotifyStatusAsync(file, ct);
             await notifier.NotifyAsync(file.OrganisationId, "Processing failed", $"{file.Filename} could not be processed.", ct);
 
-            // Rethrow => MassTransit retry / DLQ will handle it
             throw;
         }
     }
