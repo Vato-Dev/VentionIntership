@@ -10,6 +10,8 @@ namespace Persistence {
         public DbSet<Organization> Organizations { get; set; }
         public DbSet<Membership> Memberships { get; set; }
         public DbSet<FileModel> Files { get; set; }
+        public DbSet<UserChat> UserChats { get; set; }
+        public DbSet<UserChatMessage> UserChatMessages { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

@@ -19,6 +19,7 @@ using Microsoft.Extensions.Options;
 using Persistence;
 using Persistence.PersistenceOptions;
 using Persistence.ServiceCollectionExtension;
+using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -45,9 +46,9 @@ builder.Services.AddControllers(options =>
 });
 builder.WebHost.ConfigureKestrel(options =>
 {
-    options.Limits.MaxRequestBodySize = 2 * 1024 * 1024; // 2 Megabytes for handling large json payloads 
+    options.Limits.MaxRequestBodySize = 2 * 1024 * 1024; // 2 Megabytes for handling large json payloads
 });
-//builder.Services.AddFluentValidationAutoValidation(); //todo make an action filter 
+//builder.Services.AddFluentValidationAutoValidation(); //todo make an action filter
 builder.Services.AddPersistence();
 builder.AddInfrastructure();
 builder.Services.ConfigurePersistenceOptions();
@@ -58,11 +59,12 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddDbContext<AppDbContext>((serviceProvider, options) =>
 {
-    var dbOptions = serviceProvider.GetRequiredService<IOptions<DatabaseOptions>>().Value; 
-    
+    var dbOptions = serviceProvider.GetRequiredService<IOptions<DatabaseOptions>>().Value;
+
     options.UseNpgsql(dbOptions.BuildConnectionString());
 });
 
+builder.Services.AddSingleton<PresenceTracker>();
 builder.Services.AddMemoryCache();
 builder.ConfigureProblemDetails();
 builder.Services.AddExceptionHandler<ValidationExceptionHandler>();
@@ -70,7 +72,7 @@ builder.Services.AddExceptionHandler<NotFoundExceptionHandler>();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 //builder.Services.AddValidatorsFromAssemblyContaining<UserCreateDtoValidator>();
 
-
+builder.AddSerilog();
 
 builder.Services.AddAuthentication("GatewayTrust")
     .AddScheme<GatewayTrustOptions, GatewayTrustHandler>("GatewayTrust", options =>
@@ -78,14 +80,33 @@ builder.Services.AddAuthentication("GatewayTrust")
         options.SharedSecret = "YARP_GATEWAY_KEY".FromEnvRequired();
     });
 
-builder.Services.AddSignalR();
+builder.Services.AddSignalR(options =>
+    {
+        options.EnableDetailedErrors = true;
+        options.KeepAliveInterval = TimeSpan.FromSeconds(15);
+        options.ClientTimeoutInterval = TimeSpan.FromSeconds(60);
+        options.HandshakeTimeout = TimeSpan.FromSeconds(15);
+        options.MaximumReceiveMessageSize = 32 * 1024;
+        options.StreamBufferCapacity = 10;
+    })
+    .AddStackExchangeRedis(options =>
+    {
+        options.Configuration = new ConfigurationOptions
+        {
+            EndPoints = { "REDIS_HOST".FromEnvRequired() },
+            AbortOnConnectFail = false,
+            ConnectRetry = 3,
+            ConnectTimeout = 5000,
+        };
+    });
+
 builder.Services.AddAuthorization();
 builder.Services.AddHealthChecks();
-
+builder.AddGraphQl();
 
 var app = builder.Build();
 app.UseExceptionHandler();
-//app.UseMiddleware<GatewayTrustMiddleware>(); i think i found issue i'm deleting there header and after handler can't find it and returns 401
+//app.UseMiddleware<GatewayTrustMiddleware>(); //i think i found issue i'm deleting there header and after handler can't find it and returns 401
 
 using (var scope = app.Services.CreateScope())
 {
@@ -105,8 +126,11 @@ app.UseHttpsRedirection();
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
-app.MapHealthChecks("/api/health"); 
+app.MapHealthChecks("/api/health");
+app.MapGraphQL();
 app.MapHub<FileStatusHub>("/hubs/files");
+app.MapHub<ChatHub>("/hubs/chat");
+
 
 app.MapControllers();
 app.Run();

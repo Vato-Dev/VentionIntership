@@ -11,7 +11,8 @@ namespace Application.SericeCollectionExtension
             services.AddScoped<IUserService, UserService>()
                 .AddScoped<IOrganizationService, OrganizationService>()
                 .AddScoped<ISessionService, SessionService>()
-                .AddScoped<IMembershipService, MembershipService>();
+                .AddScoped<IMembershipService, MembershipService>()
+                .AddScoped<IUserChatService, UserChatService>();
         }
     }
 }
