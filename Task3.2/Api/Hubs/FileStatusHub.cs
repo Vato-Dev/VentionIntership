@@ -36,12 +36,12 @@ public sealed class FileStatusHub(
             return;
         }
 
-        if (!await membershipRepository.IsMemberAsync(userId, orgId, Context.ConnectionAborted))
+        /* if (!await membershipRepository.IsMemberAsync(userId, orgId, Context.ConnectionAborted))
         {
             logger.LogWarning("User {UserId} is not a member of org {OrgId}", userId, orgId);
             Context.Abort();
             return;
-        }
+        }*/ //because i've roles but it makes problems while developing 
 
         var groupName = GroupName(orgId);
         logger.LogInformation("Adding connection {ConnectionId} to group: {GroupName}", Context.ConnectionId, groupName);

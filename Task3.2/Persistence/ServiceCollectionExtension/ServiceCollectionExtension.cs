@@ -19,6 +19,8 @@ namespace Persistence.ServiceCollectionExtension
             services.AddScoped(typeof(IBaseRepository<,>), typeof(BaseRepository<,>));
             services.AddScoped<IMembershipRepository,MembershipRepository>();
             services.AddScoped<IUserRepository,UserRepository>();
+            services.AddScoped<IUserChatMessageRepository, UserChatMessageRepository>();
+            services.AddScoped<IUserChatRepository, UserChatRepository>();
         }
         public static void ConfigurePersistenceOptions(this IServiceCollection services)
         {

@@ -81,7 +81,7 @@ builder.Services.AddAuthentication("GatewayTrust")
 builder.Services.AddSignalR();
 builder.Services.AddAuthorization();
 builder.Services.AddHealthChecks();
-
+builder.AddGraphQl();
 
 var app = builder.Build();
 app.UseExceptionHandler();
@@ -106,6 +106,7 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapHealthChecks("/api/health"); 
+app.MapGraphQL();
 app.MapHub<FileStatusHub>("/hubs/files");
 
 app.MapControllers();
