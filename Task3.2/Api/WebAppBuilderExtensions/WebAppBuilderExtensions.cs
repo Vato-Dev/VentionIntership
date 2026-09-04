@@ -16,7 +16,7 @@ namespace Api.WebAppBuilderExtensions
         public static void AddInfrastructure(this WebApplicationBuilder builder)
         {
             builder.Services.AddScoped<IFileStatusNotifier, SignalRFileStatusNotifier>();
-            builder.Services.AddScoped<IChatNotifier, SignalRChatNotifier>(); 
+            builder.Services.AddScoped<IChatNotifier, SignalRChatNotifier>();
             builder.Services
                 .AddPasswordHasher()
                 .AddJtwConfiguration()
@@ -25,7 +25,7 @@ namespace Api.WebAppBuilderExtensions
                 .AddFileUploadServices()
                 .AddMessageBus();
         }
-        
+
         public static WebApplicationBuilder AddSerilog(this WebApplicationBuilder builder)
         {
             Log.Logger = new LoggerConfiguration()
@@ -44,7 +44,8 @@ namespace Api.WebAppBuilderExtensions
                 .AddQueryType<Query>()
                 .AddMutationType<Mutation>()
                 .AddFiltering()
-                .AddSorting();
+                .AddSorting()
+                .AddType<GraphQl.Types.FileStatusType>();
 
             return builder;
         }

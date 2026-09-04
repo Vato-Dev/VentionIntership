@@ -42,7 +42,7 @@ namespace Application.Services
             {
                 Email = dto.Email.ToLower(), // that's ugly workaround i should create field for normalized email
                 Name = dto.Name,
-                Role = "ADMIN",//to create ADmin
+                Role = "MEMBER",//to create ADmin
       
                 PasswordHash = passwordHasher.Hash(dto.Password),
                 CreatedAt = DateTime.UtcNow

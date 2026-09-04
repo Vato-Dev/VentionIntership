@@ -20,6 +20,8 @@ public class UserChatRepository(AppDbContext context) : BaseRepository<UserChat,
     public async Task<UserChat?> GetChatBetweenUsersAsync(Guid userId1, Guid userId2, CancellationToken ct = default)
     {
         return await DbSet
+            .Include(c => c.User1)//without include it was always null
+            .Include(c => c.User2)
             .FirstOrDefaultAsync(c =>
                 (c.UserId1 == userId1 && c.UserId2 == userId2) ||
                 (c.UserId1 == userId2 && c.UserId2 == userId1), ct);

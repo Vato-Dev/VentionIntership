@@ -14,5 +14,6 @@ namespace Application.Abstractions
         Task<List<UserChatMessage>> GetMessagesByChatIdAsync(Guid chatId, int limit = 100, CancellationToken ct = default);
         Task MarkMessagesAsReadAsync(Guid chatId, Guid userId, CancellationToken ct = default);
         Task<int> CountUnreadForUserAsync(Guid chatId, Guid userId, CancellationToken ct = default);
+        Task<List<ChatMessageNotification>> GetMessagesForUserSinceAsync(Guid userId, DateTime since, CancellationToken ct = default);
     }
 }

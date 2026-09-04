@@ -22,7 +22,7 @@ namespace Infrastructure.ServiceCollectionExtension
                         {
                             "REDIS_HOST".FromEnvRequired()
                         },
-                        AbortOnConnectFail = true, //maybe I should not crash app if redis is dead 
+                        AbortOnConnectFail = true, //maybe I should not crash app if redis is dead
                         ConnectRetry = 3,
                     };
                 });
@@ -87,7 +87,7 @@ namespace Infrastructure.ServiceCollectionExtension
 
             services.AddHealthChecks() // in theory if i already i can pull it outa DI or take fabric from DI , but i'm not sure if it will affect lifetime (it will ig)
                 .AddRabbitMQ(
-                sp => 
+                sp =>
                 {
                     var factory = new ConnectionFactory
                     {

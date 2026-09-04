@@ -1,26 +1,20 @@
-﻿using System.Data;
-using Application.Abstractions;
+﻿using Application.Abstractions;
 using Domain.Models;
+using Microsoft.Extensions.Logging;
 
 namespace Application.Services;
 
 public class UserChatService(
     IUserChatRepository chatRepository,
     IUserChatMessageRepository messageRepository,
-    IBaseRepository<User, Guid> userRepository, 
-    IUnitOfWork unitOfWork) : IUserChatService
+    IChatNotifier chatNotifier,
+    ILogger<UserChatService> logger,
+    IUnitOfWork unitOfWork)
+    : IUserChatService
 {
     public async Task<List<UserChat>> GetUserChatsAsync(Guid userId, CancellationToken ct = default)
     {
-        var chats = await chatRepository.GetUserChatsAsync(userId, ct);
-
-       
-        foreach (var chat in chats)
-        {
-            chat.UnreadCount = await messageRepository.CountUnreadForUserAsync(chat.Id, userId, ct);
-        }
-
-        return chats;
+        return await chatRepository.GetUserChatsAsync(userId, ct);
     }
 
     public async Task<UserChat> CreateOrGetChatAsync(Guid userId1, Guid userId2, CancellationToken ct = default)
@@ -31,37 +25,20 @@ public class UserChatService(
         var existing = await chatRepository.GetChatBetweenUsersAsync(userId1, userId2, ct);
         if (existing != null)
             return existing;
-        
-        var user1 = await userRepository.GetByIdAsync(userId1, ct)
-            ?? throw new InvalidOperationException("User not found");
-        var user2 = await userRepository.GetByIdAsync(userId2, ct)
-            ?? throw new InvalidOperationException("User not found");
 
         var chat = new UserChat
         {
             Id = Guid.NewGuid(),
             UserId1 = userId1,
             UserId2 = userId2,
-            User1 = user1,
-            User2 = user2,
             LastMessage = "Chat created",
             LastMessageAt = DateTime.UtcNow,
             CreatedAt = DateTime.UtcNow
         };
 
-        await unitOfWork.BeginTransactionAsync(IsolationLevel.ReadCommitted, ct);
-        try
-        {
-            await chatRepository.AddAsync(chat, ct);
-            await unitOfWork.SaveChangesAsync(ct);
-            await unitOfWork.CommitTransactionAsync(ct);
-            return chat;
-        }
-        catch
-        {
-            await unitOfWork.RollbackTransactionAsync(CancellationToken.None);
-            throw;
-        }
+        await chatRepository.AddAsync(chat, ct);
+        await unitOfWork.SaveChangesAsync(ct);
+        return chat;
     }
 
     public async Task<UserChat?> GetChatWithMessagesAsync(Guid chatId, Guid userId, CancellationToken ct = default)
@@ -70,12 +47,15 @@ public class UserChatService(
         if (chat != null)
         {
             await messageRepository.MarkMessagesAsReadAsync(chatId, userId, ct);
-            await unitOfWork.SaveChangesAsync(ct); 
         }
         return chat;
     }
 
-    public async Task<UserChatMessage> SendMessageAsync(Guid chatId, Guid senderId, string content, CancellationToken ct = default)
+    public async Task<UserChatMessage> SendMessageAsync(
+        Guid chatId,
+        Guid senderId,
+        string content,
+        CancellationToken ct = default)
     {
         var chat = await chatRepository.GetByIdAsync(chatId, ct);
         if (chat == null)
@@ -94,26 +74,46 @@ public class UserChatService(
             IsRead = false
         };
 
-        await unitOfWork.BeginTransactionAsync(IsolationLevel.ReadCommitted, ct);
-        try
-        {
-            await messageRepository.AddAsync(message, ct);
+        await messageRepository.AddAsync(message, ct);
 
-            chat.LastMessage = content;
-            chat.LastMessageAt = DateTime.UtcNow;
-            chat.UpdatedAt = DateTime.UtcNow;
-        
-            chatRepository.Update(chat);
-            await unitOfWork.SaveChangesAsync(ct);
-            await unitOfWork.CommitTransactionAsync(ct);
+        chat.LastMessage = content;
+        chat.LastMessageAt = DateTime.UtcNow;
+        chat.UpdatedAt = DateTime.UtcNow;
+        chat.UnreadCount++;
 
-            return message;
-        }
-        catch
+        chatRepository.Update(chat);
+
+        await unitOfWork.SaveChangesAsync(ct);
+
+        if (chatNotifier != null)
         {
-            await unitOfWork.RollbackTransactionAsync(CancellationToken.None);
-            throw;
+            try
+            {
+                var recipientUserId = chat.UserId1 == senderId ? chat.UserId2 : chat.UserId1;
+                logger.LogInformation("📨 Sending notification to user {UserId}", recipientUserId);
+
+                var notification = new ChatMessageNotification(
+                    message.Id,
+                    message.ChatId,
+                    message.Content,
+                    message.SenderId,
+                    message.Sender?.Name ?? "",
+                    message.CreatedAt
+                );
+                await chatNotifier.NotifyNewMessageAsync(recipientUserId, notification, ct);
+                logger.LogInformation("Notification sent successfully");
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "SignalR notification failed");
+            }
         }
+        else
+        {
+            logger.LogWarning("chatNotifier is null");
+        }
+
+        return message;
     }
 
     public async Task<bool> DeleteChatAsync(Guid chatId, Guid userId, CancellationToken ct = default)
@@ -125,18 +125,8 @@ public class UserChatService(
         if (chat.UserId1 != userId && chat.UserId2 != userId)
             return false;
 
-        await unitOfWork.BeginTransactionAsync(IsolationLevel.ReadCommitted, ct);
-        try
-        {
-            chatRepository.Delete(chat);
-            await unitOfWork.SaveChangesAsync(ct);
-            await unitOfWork.CommitTransactionAsync(ct);
-            return true;
-        }
-        catch
-        {
-            await unitOfWork.RollbackTransactionAsync(CancellationToken.None);
-            throw;
-        }
+        chatRepository.Delete(chat);
+        await unitOfWork.SaveChangesAsync(ct);
+        return true;
     }
 }
