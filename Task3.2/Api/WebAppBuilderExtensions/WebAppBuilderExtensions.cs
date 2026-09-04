@@ -16,6 +16,7 @@ namespace Api.WebAppBuilderExtensions
         public static void AddInfrastructure(this WebApplicationBuilder builder)
         {
             builder.Services.AddScoped<IFileStatusNotifier, SignalRFileStatusNotifier>();
+            builder.Services.AddScoped<IChatNotifier, SignalRChatNotifier>(); 
             builder.Services
                 .AddPasswordHasher()
                 .AddJtwConfiguration()

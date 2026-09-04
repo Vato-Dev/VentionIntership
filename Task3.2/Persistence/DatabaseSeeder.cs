@@ -58,7 +58,7 @@ public static class DatabaseSeeder
             {
                 Name = "vlad_osman",
                 Email = user1Email,
-                Role = "User",
+                Role = "USER",
                 PasswordHash = HashPasswordForSeeder("test123"), 
                 CreatedAt = nowUtc
             };
